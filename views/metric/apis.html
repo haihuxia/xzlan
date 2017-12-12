@@ -1,0 +1,104 @@
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend>已配置的接口信息</legend>
+</fieldset>
+<form class="layui-form" action="">
+    <div class="layui-form-item">
+        <div class="layui-input-inline">
+            <input type="text" name="name" placeholder="接口名" class="layui-input">
+        </div>
+        <div class="layui-input-inline">
+            <input type="text" name="method" placeholder="方法名" class="layui-input">
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-submit lay-filter="search">
+                <i class="layui-icon">&#xe615;</i>查询
+            </button>
+            <button class="layui-btn" id="addApiBtn" type="button">
+                <i class="layui-icon">&#xe61f;</i>新增
+            </button>
+        </div>
+        <label class="layui-form-label">总条数：<span id="count"></span></label>
+    </div>
+    <div class="layui-form-item">
+        <table id="apiTb" lay-filter="apiTb"></table>
+    </div>
+</form>
+<script type="text/html" id="apiBar">
+<a title="修改" lay-event="edit"><i class="layui-icon">&#xe642;</i></a>
+<a title="删除" lay-event="del"><i class="layui-icon">&#xe640;</i></a>
+</script>
+<script>
+    layui.use(['form', 'jquery', 'table', 'layer'], function () {
+        var form = layui.form;
+        var layer = layui.layer;
+        var table = layui.table;
+        var $ = layui.$;
+
+        $("#apiLi").removeClass("layui-this").addClass("layui-this");
+
+        var apiTable = table.render({
+            elem: '#apiTb'
+            , height: '320'
+            , url: '/apis'
+            , page: false
+            , cols: [[
+                {field: 'id', title: 'ID', width: 80}
+                , {field: 'name', title: '接口名', width: '30%'}
+                , {field: 'method', title: '方法', width: '10%'}
+                , {field: 'remark', title: '备注'}
+                , {title: '操作', width: '7%', toolbar: '#apiBar'}
+            ]]
+            , limits: [10, 20, 30]
+            , initSort: {
+                field: 'id'
+                , type: 'desc'
+            },
+            done: function (res, curr, count) {
+                $("#count").text(count);
+            }
+        });
+        table.on('tool(apiTb)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+            if (layEvent === "edit") {
+
+            } else if (layEvent === "del") {
+                layer.confirm('确定删除吗？', function(index){
+                    $.ajax({
+                        dataType: "json",
+                        type: "DELETE",
+                        url: "/apis/" + data["id"],
+                        success: function(result){
+                            if (result["code"] === 200) {
+                                obj.del();
+                                layer.close(index);
+                                apiTable.reload();
+                            }
+                        }
+                    });
+                });
+            }
+        });
+
+        form.on('submit(search)', function (d) {
+            apiTable.reload({
+                where: {
+                    name: d.field["name"],
+                    method: d.field["method"]
+                }
+            });
+            return false;
+        });
+
+        $("#addApiBtn").click(function () {
+            layer.open({
+                type: 2,
+                title: '新增接口',
+                shadeClose: true,
+                shade: 0.8,
+                area: ['455px', '45%'],
+                content: '/apis/add'
+            });
+        });
+    });
+</script>

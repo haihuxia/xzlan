@@ -1,0 +1,11 @@
+#folder
+target/
+
+#fixed file
+.log
+.DS_Store
+*.iml
+*/*.log
+
+target/
+.idea/
