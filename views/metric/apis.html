@@ -25,6 +25,7 @@
 </form>
 <script type="text/html" id="apiBar">
 <a title="修改" lay-event="edit"><i class="layui-icon">&#xe642;</i></a>
+<a title="配置告警" lay-event="conf"><i class="layui-icon">&#xe631;</i></a>
 <a title="删除" lay-event="del"><i class="layui-icon">&#xe640;</i></a>
 </script>
 <script>
@@ -46,7 +47,7 @@
                 , {field: 'name', title: '接口名', width: '30%'}
                 , {field: 'method', title: '方法', width: '10%'}
                 , {field: 'remark', title: '备注'}
-                , {title: '操作', width: '7%', toolbar: '#apiBar'}
+                , {title: '操作', width: '9%', toolbar: '#apiBar'}
             ]]
             , limits: [10, 20, 30]
             , initSort: {
@@ -61,7 +62,14 @@
             var data = obj.data;
             var layEvent = obj.event;
             if (layEvent === "edit") {
-
+                layer.open({
+                    type: 2,
+                    title: '修改接口',
+                    shadeClose: true,
+                    shade: 0.8,
+                    area: ['455px', '45%'],
+                    content: '/apis/' + data["id"]
+                });
             } else if (layEvent === "del") {
                 layer.confirm('确定删除吗？', function(index){
                     $.ajax({
@@ -77,6 +85,8 @@
                         }
                     });
                 });
+            } else if (layEvent === "conf") {
+
             }
         });
 

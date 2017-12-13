@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+const (
+	ApiTable = "api"
+)
+
 type Dao struct {
 	Db *bolt.DB
 }
@@ -43,7 +47,7 @@ func (dao *Dao) Put(table string, key string, value []byte) error {
 
 func (dao *Dao) PutApi(api Api) error {
 	err := dao.Db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("api"))
+		b := tx.Bucket([]byte(ApiTable))
 		v, err := b.NextSequence()
 		if err != nil {
 			return err
@@ -59,11 +63,15 @@ func (dao *Dao) PutApi(api Api) error {
 	if e != nil {
 		return e
 	}
-	return dao.Put("api", api.Id, apiJson)
+	return dao.Put(ApiTable, api.Id, apiJson)
 }
 
-func (dao *Dao) Update(table string, key string, value []byte) error {
-	return dao.Put(table, key, value)
+func (dao *Dao) Update(table string, key string, value interface{}) error {
+	v, e := json.Marshal(value)
+	if e != nil {
+		return e
+	}
+	return dao.Put(table, key, v)
 }
 
 func (dao *Dao) Delete(table string, key string) error {
@@ -85,7 +93,7 @@ func (dao *Dao) Get(table string, key string) ([]byte, error) {
 
 func (dao *Dao) GetApis(name string, method string) (apis []Api, err error) {
 	err = dao.Db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("api"))
+		b := tx.Bucket([]byte(ApiTable))
 		var api Api
 		return b.ForEach(func(k, v []byte) error {
 			if e := json.Unmarshal(v, &api); e != nil {
@@ -113,7 +121,7 @@ func (dao *Dao) GetApis(name string, method string) (apis []Api, err error) {
 
 func (dao *Dao) GetApisAll() (apis []Api, err error) {
 	err = dao.Db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("api"))
+		b := tx.Bucket([]byte(ApiTable))
 		var api Api
 		return b.ForEach(func(k, v []byte) error {
 			if e := json.Unmarshal(v, &api); e != nil {
