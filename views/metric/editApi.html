@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>api 修改</title>
+    <title>api</title>
     <link rel="stylesheet" href="../../static/css/layui.css">
 </head>
 <body>
@@ -13,7 +13,6 @@
             <label class="layui-form-label"><span style="color: red">*</span>接口名</label>
             <div class="layui-input-inline">
                 <input type="text" name="name" value="{{.Name}}" required class="layui-input">
-                <input type="hidden" name="id" value="{{.Id}}">
             </div>
         </div>
         <div class="layui-form-item">
@@ -30,6 +29,7 @@
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label"></label>
+            <input type="hidden" name="id" value="{{.Id}}">
             <button class="layui-btn" lay-submit lay-filter="editApi">
                 <i class="layui-icon">&#xe615;</i>提交
             </button>

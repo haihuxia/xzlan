@@ -10,6 +10,7 @@ import (
 
 const (
 	ApiTable = "api"
+	RuleTable = "rule"
 )
 
 type Dao struct {
@@ -37,7 +38,7 @@ func (dao *Dao) DeleteTable(table string) error {
 	})
 }
 
-func (dao *Dao) Put(table string, key string, value []byte) error {
+func (dao *Dao) PutByByte(table string, key string, value []byte) error {
 	return dao.Db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(table))
 		err := b.Put([]byte(key), value)
@@ -59,19 +60,15 @@ func (dao *Dao) PutApi(api Api) error {
 	if err != nil {
 		return err
 	}
-	apiJson, e := json.Marshal(api)
-	if e != nil {
-		return e
-	}
-	return dao.Put(ApiTable, api.Id, apiJson)
+	return dao.PutByStruct(ApiTable, api.Id, api)
 }
 
-func (dao *Dao) Update(table string, key string, value interface{}) error {
+func (dao *Dao) PutByStruct(table string, key string, value interface{}) error {
 	v, e := json.Marshal(value)
 	if e != nil {
 		return e
 	}
-	return dao.Put(table, key, v)
+	return dao.PutByByte(table, key, v)
 }
 
 func (dao *Dao) Delete(table string, key string) error {

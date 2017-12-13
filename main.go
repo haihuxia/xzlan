@@ -50,7 +50,8 @@ func main() {
 	}
 	defer metricDao.Db.Close()
 
-	app.Controller("/apis", new(controller.MetricController), metricDao)
+	app.Controller("/apis", new(controller.ApiController), metricDao)
+	app.Controller("/rule", new(controller.RuleController), metricDao)
 
 	// Method:   GET
 	// Resource: http://localhost:8080

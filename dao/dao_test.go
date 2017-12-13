@@ -32,7 +32,7 @@ func TestDao_DeleteTable(t *testing.T) {
 	}
 }
 
-func TestDao_Put(t *testing.T) {
+func TestDao_PutByStruct(t *testing.T) {
 	dao, err := NewDao("/Users/tiger/project/logs/go/xzlan.db")
 	defer dao.Db.Close()
 
@@ -40,11 +40,7 @@ func TestDao_Put(t *testing.T) {
 		t.Fatal(err)
 	}
 	api := Api{"1", "user", "get", "查询接口"}
-	apiJson, e := json.Marshal(api)
-	if e != nil {
-		t.Fatal(e)
-	}
-	err = dao.Put(ApiTable, "1", apiJson)
+	err = dao.PutByStruct(ApiTable, "1", api)
 	if err != nil {
 		t.Fatal(err)
 	}
