@@ -9,5 +9,6 @@ So I just use *go* to do something.
 xzlan depends on these
 
 * iris
+* github.com/boltdb/bolt
 * gopkg.in/olivere/elastic.v5
 * layui
