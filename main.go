@@ -15,7 +15,7 @@ func todayFilename() string {
 	return today + ".log"
 }
 
-func newLogFile() *os.File {
+func newLogFile(path string) *os.File {
 	filename := "/Users/tiger/project/logs/xzlan/" + todayFilename()
 	// open an output file, this will append to the today's file if server restarted.
 	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
@@ -27,24 +27,25 @@ func newLogFile() *os.File {
 }
 
 func main() {
-	//f := newLogFile()
-	//defer f.Close()
-
 	conf := iris.YAML("./configs/app.yml")
 
 	app := iris.New()
 
 	app.Use(recover.New())
 	app.Use(logger.New(logger.Config{Status:true, IP:false, Method:true, Path:true}))
-	//app.Logger().AddOutput(newLogFile())
 
 	app.Logger().Info("LogPath: ", conf.Other["LogPath"])
+
+	//f := newLogFile(conf.Other["LogPath"])
+	//defer f.Close()
+	//app.Logger().AddOutput(newLogFile())
 
 	app.StaticWeb("/static", "./static")
 	app.RegisterView(iris.HTML("./views", ".html").Layout("layout/layout.html"))
 
 	// Open DB
-	metricDao, dbErr := dao.NewDao("/Users/tiger/project/logs/go/xzlan.db")
+	daPath := conf.Other["LogPath"]
+	metricDao, dbErr := dao.NewDao(daPath.(string))
 	if dbErr != nil {
 		app.Logger().Warn("open DB error: " + dbErr.Error())
 	}

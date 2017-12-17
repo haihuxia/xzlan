@@ -20,4 +20,5 @@ RemoteAddrHeaders:
   X-Real-Ip: false
 Other: {
   LogPath: /Users/tiger/project/logs/xzlan/
+  DbPath: /Users/tiger/project/logs/go/xzlan.db
 }
