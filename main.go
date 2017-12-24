@@ -8,6 +8,8 @@ import (
 	"github.com/kataras/iris/middleware/logger"
 	"xzlan/dao"
 	"xzlan/controller"
+	"xzlan/alert"
+	"xzlan/mail"
 )
 
 func todayFilename() string {
@@ -22,7 +24,6 @@ func newLogFile(path string) *os.File {
 	if err != nil {
 		panic(err)
 	}
-
 	return f
 }
 
@@ -35,49 +36,34 @@ func main() {
 	app.Use(logger.New(logger.Config{Status:true, IP:false, Method:true, Path:true}))
 
 	app.Logger().Info("LogPath: ", conf.Other["LogPath"])
-
+	app.Logger().Info("DbPath: ", conf.Other["DbPath"])
 	//f := newLogFile(conf.Other["LogPath"])
 	//defer f.Close()
 	//app.Logger().AddOutput(newLogFile())
 
 	app.StaticWeb("/static", "./static")
-	app.RegisterView(iris.HTML("./views", ".html").Layout("layout/layout.html"))
+	app.RegisterView(iris.HTML("./views", ".html").Layout("layout/layout.html").Delims("<<", ">>"))
 
 	// Open DB
-	daPath := conf.Other["LogPath"]
+	daPath := conf.Other["DbPath"]
 	metricDao, dbErr := dao.NewDao(daPath.(string))
 	if dbErr != nil {
 		app.Logger().Warn("open DB error: " + dbErr.Error())
 	}
 	defer metricDao.Db.Close()
 
-	app.Controller("/apis", new(controller.ApiController), metricDao)
+	alertMail := mail.NewMail(conf.Other["MailUser"].(string), conf.Other["MailPasword"].(string),
+		conf.Other["MailHost"].(string))
+	apiAlert := alert.NewAlert(metricDao, alertMail, conf.Other["EsUrl"].(string))
+	app.Controller("/apis", new(controller.ApiController), metricDao, apiAlert)
 	app.Controller("/rule", new(controller.RuleController), metricDao)
 
-	// Method:   GET
-	// Resource: http://localhost:8080
 	app.Handle("GET", "/", func(ctx iris.Context) {
-		//ctx.HTML("<h1>Welcome</h1>")
 		ctx.View("index.html")
 	})
 
 	app.Get("/api", func(ctx iris.Context) {
 		ctx.View("metric/apis.html")
-	})
-
-	// same as app.Handle("GET", "/ping", [...])
-	// Method:   GET
-	// Resource: http://localhost:8080/ping
-	app.Get("/ping", func(ctx iris.Context) {
-		ctx.WriteString("pong")
-	})
-
-	// Method:   GET
-	// Resource: http://localhost:8080/hello
-	app.Get("/hello", func(ctx iris.Context) {
-		name := ctx.URLParam("name")
-		ctx.Application().Logger().Info(name)
-		ctx.JSON(iris.Map{"message": "Hello Iris!" + " " + name})
 	})
 
 	app.Configure(iris.WithConfiguration(conf))

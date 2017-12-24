@@ -8,7 +8,7 @@ EnableOptimizations: false
 FireMethodNotAllowed: false
 DisableBodyConsumptionOnUnmarshal: false
 DisableAutoFireStatusCode: false
-TimeFormat: Mon, Jan 02 2006 15:04:05 GMT
+TimeFormat: "Mon, Jan 02 2006 15:04:05 GMT"
 Charset: UTF-8
 TranslateFunctionContextKey: iris.translate
 TranslateLanguageContextKey: iris.language
@@ -19,6 +19,10 @@ RemoteAddrHeaders:
   X-Forwarded-For: false
   X-Real-Ip: false
 Other: {
-  LogPath: /Users/tiger/project/logs/xzlan/
-  DbPath: /Users/tiger/project/logs/go/xzlan.db
+  EsUrl: "http://10.0.21.44:9200",
+  LogPath: "/Users/tiger/project/logs/xzlan/",
+  DbPath: "/Users/tiger/project/logs/go/xzlan.db",
+  MailHost: "",
+  MailUser: "",
+  MailPasword: ""
 }

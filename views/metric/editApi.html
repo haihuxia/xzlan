@@ -12,24 +12,25 @@
         <div class="layui-form-item">
             <label class="layui-form-label"><span style="color: red">*</span>接口名</label>
             <div class="layui-input-inline">
-                <input type="text" name="name" value="{{.Name}}" required class="layui-input">
+                <input type="text" name="name" value="<<.Name>>" required class="layui-input">
             </div>
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">方法名</label>
             <div class="layui-input-inline">
-                <input type="text" name="method" value="{{.Method}}" class="layui-input">
+                <input type="text" name="method" value="<<.Method>>" class="layui-input">
             </div>
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">备注</label>
             <div class="layui-input-inline">
-                <input type="text" name="remark" value="{{.Remark}}" class="layui-input">
+                <input type="text" name="remark" value="<<.Remark>>" class="layui-input">
             </div>
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label"></label>
-            <input type="hidden" name="id" value="{{.Id}}">
+            <input type="hidden" name="id" value="<<.Id>>">
+            <input type="hidden" name="status" value="<<.Status>>">
             <button class="layui-btn" lay-submit lay-filter="editApi">
                 <i class="layui-icon">&#xe615;</i>提交
             </button>

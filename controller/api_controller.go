@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"iris"
 	"encoding/json"
+	"xzlan/alert"
 )
 
 type ApiController struct {
 	mvc.C
 	MetricDao dao.Dao
+	ApiAlert alert.Alert
 }
 
 func (a *ApiController) Get() iris.Map {
@@ -47,6 +49,7 @@ func (a *ApiController) PostAdd() iris.Map {
 	if err != nil {
 		return iris.Map{"code": iris.StatusInternalServerError, "msg": err.Error()}
 	}
+	api.Status = "stop"
 	err = a.MetricDao.PutApi(api)
 	if err != nil {
 		return iris.Map{"code": iris.StatusInternalServerError, "msg": err.Error()}
@@ -69,6 +72,24 @@ func (a *ApiController) PostEdit() iris.Map {
 
 func (a *ApiController) DeleteBy(id string) iris.Map {
 	err := a.MetricDao.Delete(dao.ApiTable, id)
+	if err != nil {
+		return iris.Map{"code": iris.StatusInternalServerError, "msg": err.Error()}
+	}
+	return iris.Map{"code": iris.StatusOK, "msg": "OK"}
+}
+
+func (a *ApiController) PostAlertBy(id string) iris.Map {
+	api, err := a.MetricDao.GetApiBy(id)
+	if err != nil {
+		return iris.Map{"code": iris.StatusInternalServerError, "msg": err.Error()}
+	}
+	rule, err := a.MetricDao.GetRuleBy(api.Id)
+	if err != nil {
+		return iris.Map{"code": iris.StatusInternalServerError, "msg": err.Error()}
+	}
+	go a.ApiAlert.RunJob(api, rule)
+	api.Status = "running"
+	err = a.MetricDao.UpdateApi(api)
 	if err != nil {
 		return iris.Map{"code": iris.StatusInternalServerError, "msg": err.Error()}
 	}

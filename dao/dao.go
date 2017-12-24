@@ -22,7 +22,18 @@ func NewDao(dbPath string) (Dao, error) {
 	if err != nil {
 		return Dao{}, err
 	}
-	return Dao{boltDb}, nil
+	err = boltDb.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte(ApiTable))
+		if err != nil {
+			return err
+		}
+		_, err = tx.CreateBucketIfNotExists([]byte(RuleTable))
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return Dao{boltDb}, err
 }
 
 func (dao *Dao) CreateTable(table string) error {
@@ -60,6 +71,10 @@ func (dao *Dao) PutApi(api Api) error {
 	if err != nil {
 		return err
 	}
+	return dao.PutByStruct(ApiTable, api.Id, api)
+}
+
+func (dao *Dao) UpdateApi(api Api) error {
 	return dao.PutByStruct(ApiTable, api.Id, api)
 }
 
@@ -129,4 +144,36 @@ func (dao *Dao) GetApisAll() (apis []Api, err error) {
 		})
 	})
 	return
+}
+
+func (dao *Dao) GetApiBy(key string) (Api, error) {
+	var api Api
+	err := dao.Db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(ApiTable))
+		v := b.Get([]byte(key))
+		if len(v) > 0 {
+			e := json.Unmarshal(v, &api)
+			if e != nil {
+				return e
+			}
+		}
+		return nil
+	})
+	return api, err
+}
+
+func (dao *Dao) GetRuleBy(key string) (Rule, error) {
+	var rule Rule
+	err := dao.Db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(RuleTable))
+		v := b.Get([]byte(key))
+		if len(v) > 0 {
+			e := json.Unmarshal(v, &rule)
+			if e != nil {
+				return e
+			}
+		}
+		return nil
+	})
+	return rule, err
 }

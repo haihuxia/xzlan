@@ -39,7 +39,7 @@ func TestDao_PutByStruct(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api := Api{"1", "user", "get", "查询接口"}
+	api := Api{"1", "user", "get", "查询接口", "stop"}
 	err = dao.PutByStruct(ApiTable, "1", api)
 	if err != nil {
 		t.Fatal(err)
@@ -53,7 +53,7 @@ func TestDao_PutApi(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api := Api{"", "user", "get", "查询接口"}
+	api := Api{"", "user", "get", "查询接口", "stop"}
 	err = dao.PutApi(api)
 	if err != nil {
 		t.Fatal(err)
@@ -124,4 +124,18 @@ func TestDao_Delete(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestDao_GetRuleBy(t *testing.T) {
+	dao, err := NewDao("/Users/tiger/project/logs/go/xzlan.db")
+	defer dao.Db.Close()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	v, err := dao.GetRuleBy("12")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(v)
 }

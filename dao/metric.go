@@ -7,6 +7,7 @@ type Api struct {
 	Name string `json:"name,omitempty"`
 	Method string `json:"method,omitempty"`
 	Remark string `json:"remark,omitempty"`
+	Status string `json:"status,omitempty"`
 }
 
 // 告警规则
@@ -24,4 +25,8 @@ type Rule struct {
 // 全局通知邮件列表
 type GlobalMail struct {
 	Mails string `json:"mails,omitempty"`
+}
+
+type Message struct {
+	Message string `json:"message,omitempty"`
 }
