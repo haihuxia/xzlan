@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 	"encoding/json"
-	"xzlan/dao"
+	"xzlan/alert"
 )
 
 func TestNewEs(t *testing.T) {
@@ -43,7 +43,7 @@ func TestNewEs(t *testing.T) {
 	for i := 0; i < len(result.Hits.Hits); i++ {
 		//fmt.Printf("result: %s \n", result.Hits.Hits[i])
 		b, _ := result.Hits.Hits[i].Source.MarshalJSON()
-		var m dao.Message
+		var m alert.Message
 		json.Unmarshal(b, &m)
 		fmt.Printf("%s \n", m.Message)
 	}

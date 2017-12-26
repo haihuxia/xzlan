@@ -15,26 +15,38 @@ import (
 var chanMap = make(map[string]chan bool)
 
 type Alert struct {
-	MetricDao dao.Dao
-	Mail      mail.Mail
-	EsUrl     string
+	ApiDao  *dao.ApiDao
+	RuleDao *dao.RuleDao
+	Mail    *mail.Mail
+	EsUrl   string
 }
 
-func NewAlert(dao dao.Dao, mail mail.Mail, esUrl string) Alert {
-	return Alert{dao, mail, esUrl}
+type Message struct {
+	Message string `json:"message"`
+}
+
+func NewAlert(apiDao *dao.ApiDao, ruleDao *dao.RuleDao, mail *mail.Mail, esUrl string) *Alert {
+	return &Alert{apiDao, ruleDao, mail, esUrl}
 }
 
 func (a *Alert) Start() error {
-	apis, err := a.MetricDao.GetApisAll()
+	apis, err := a.ApiDao.GetAll()
 	if err != nil {
 		return err
 	}
 	for i := range apis {
-		rule, err := a.MetricDao.GetRuleBy(apis[i].Id)
+		rule, err := a.RuleDao.Get(apis[i].Id)
 		if err != nil {
 			return err
 		}
 		a.RunJob(apis[i], rule)
+	}
+	return nil
+}
+
+func (a *Alert) Stop(id string) error {
+	if v, ok := chanMap[id]; ok {
+		v <- true
 	}
 	return nil
 }
@@ -49,13 +61,13 @@ func (a *Alert) RunJob(api dao.Api, rule dao.Rule) {
 		case <-tick:
 			a.job(api, rule)
 		case <-stop:
-			fmt.Println("Stop !")
 			flag = true
 		}
 		if flag {
 			break
 		}
 	}
+	fmt.Println("Stop !")
 }
 
 func (a *Alert) job(api dao.Api, rule dao.Rule) {
@@ -81,19 +93,19 @@ func (a *Alert) job(api dao.Api, rule dao.Rule) {
 		fmt.Printf("error %s \n", err)
 	}
 	if result.Hits.TotalHits >= c {
-		fmt.Printf("%s %s %d %d 【命中】 \n", api.Name, api.Method, c, result.Hits.TotalHits)
+		fmt.Printf("%s %s %d hit: %d 【命中】 \n", api.Name, api.Method, c, result.Hits.TotalHits)
 		body := "接口：<b>" + api.Name + "</b><br/>方法：<b>" + api.Method + "</b><br/>耗时匹配次数：<b>" +
 			strconv.FormatInt(result.Hits.TotalHits, 10) + "</b>（告警规则：大于 " + rule.Min + "ms, " +
 			rule.Count + "次）<br/><br/>原始日志："
 		for i := 0; i < len(result.Hits.Hits); i++ {
 			b, _ := result.Hits.Hits[i].Source.MarshalJSON()
-			var m dao.Message
+			var m Message
 			json.Unmarshal(b, &m)
 			body = body + "<br/>" + m.Message
 		}
 		tos := strings.Split(rule.Mails, ";")
 		fmt.Printf("tos: %s", tos)
-		for i := 0; i < len(tos) ; i++ {
+		for i := 0; i < len(tos); i++ {
 			if tos[i] == "" {
 				continue
 			}
@@ -105,6 +117,6 @@ func (a *Alert) job(api dao.Api, rule dao.Rule) {
 			}
 		}
 	} else {
-		fmt.Printf("%s %s %d %d 【未命中】 \n", api.Name, api.Method, c, result.Hits.TotalHits)
+		fmt.Printf("%s %s %d hit: %d 【未命中】 \n", api.Name, api.Method, c, result.Hits.TotalHits)
 	}
 }

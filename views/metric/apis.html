@@ -27,7 +27,8 @@
     <a title="修改" lay-event="edit"><i class="layui-icon">&#xe642;</i></a>
     <a title="配置告警" lay-event="conf"><i class="layui-icon">&#xe631;</i></a>
     <a title="删除" lay-event="del"><i class="layui-icon">&#xe640;</i></a>
-    <a title="启动" lay-event="start"><i class="layui-icon">&#xe652;</i></a>
+    <a title="启动" lay-event="run"><i class="layui-icon">&#xe652;</i></a>
+    <a title="停止" lay-event="stop"><i class="layui-icon">&#xe651;</i></a>
 </script>
 <script type="text/html" id="statusTpl">
     {{#  if(d.status === "stop"){ }}
@@ -57,7 +58,7 @@
                 , {field: 'method', title: '方法', width: '10%'}
                 , {field: 'status', title: '状态', width: '10%', templet: '#statusTpl'}
                 , {field: 'remark', title: '备注'}
-                , {title: '操作', width: '11%', toolbar: '#apiBar'}
+                , {title: '操作', width: '13%', toolbar: '#apiBar'}
             ]]
             , limits: [10, 20, 30]
             , initSort: {
@@ -87,10 +88,13 @@
                         type: "DELETE",
                         url: "/apis/" + data["id"],
                         success: function(result){
-                            if (result["code"] === 200) {
+                            var resultCode = result["code"];
+                            if (resultCode === 200) {
                                 obj.del();
                                 layer.close(index);
                                 apiTable.reload();
+                            } else if (resultCode === 500) {
+                                layer.msg('启动失败，' + result["msg"], {time: 3000, icon:2});
                             }
                         }
                     });
@@ -104,15 +108,37 @@
                     area: ['600px', '63%'],
                     content: '/rule/' + data["id"]
                 });
-            } else if (layEvent === "start") {
+            } else if (layEvent === "run") {
                 $.ajax({
                     dataType: "json",
                     type: "POST",
-                    url: "/apis/alert/" + data["id"],
+                    url: "/apis/run/" + data["id"],
                     success: function(result){
-                        if (result["code"] === 200) {
+                        var resultCode = result["code"];
+                        if (resultCode === 200) {
                             layer.msg('启动成功', {time: 3000, icon:1});
                             apiTable.reload();
+                        } else if (resultCode === 500) {
+                            layer.msg('启动失败，' + result["msg"], {time: 3000, icon:2});
+                        } else if (resultCode === 400) {
+                            layer.msg(result["msg"], {time: 3000, icon:0});
+                        }
+                    }
+                });
+            } else if (layEvent === "stop") {
+                $.ajax({
+                    dataType: "json",
+                    type: "POST",
+                    url: "/apis/stop/" + data["id"],
+                    success: function(result){
+                        var resultCode = result["code"];
+                        if (resultCode === 200) {
+                            layer.msg('已停止', {time: 3000, icon:1});
+                            apiTable.reload();
+                        } else if (resultCode === 500) {
+                            layer.msg('停止失败，' + result["msg"], {time: 3000, icon:2});
+                        } else if (resultCode === 400) {
+                            layer.msg(result["msg"], {time: 3000, icon:0});
                         }
                     }
                 });

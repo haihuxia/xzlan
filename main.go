@@ -46,17 +46,19 @@ func main() {
 
 	// Open DB
 	daPath := conf.Other["DbPath"]
-	metricDao, dbErr := dao.NewDao(daPath.(string))
+	daoDb, dbErr := dao.NewDao(daPath.(string))
 	if dbErr != nil {
 		app.Logger().Warn("open DB error: " + dbErr.Error())
 	}
-	defer metricDao.Db.Close()
+	defer daoDb.Db.Close()
 
 	alertMail := mail.NewMail(conf.Other["MailUser"].(string), conf.Other["MailPasword"].(string),
 		conf.Other["MailHost"].(string))
-	apiAlert := alert.NewAlert(metricDao, alertMail, conf.Other["EsUrl"].(string))
-	app.Controller("/apis", new(controller.ApiController), metricDao, apiAlert)
-	app.Controller("/rule", new(controller.RuleController), metricDao)
+	apiDao := dao.NewApiDao(daoDb)
+	ruleDao := dao.NewRuleDao(daoDb)
+	apiAlert := alert.NewAlert(apiDao, ruleDao, alertMail, conf.Other["EsUrl"].(string))
+	app.Controller("/apis", new(controller.ApiController), apiDao, apiAlert)
+	app.Controller("/rule", new(controller.RuleController), ruleDao)
 
 	app.Handle("GET", "/", func(ctx iris.Context) {
 		ctx.View("index.html")

@@ -5,12 +5,11 @@ import (
 	"iris/mvc"
 	"iris"
 	"fmt"
-	"encoding/json"
 )
 
 type RuleController struct {
 	mvc.C
-	MetricDao dao.Dao
+	RuleDao *dao.RuleDao
 }
 
 type Rule struct {
@@ -18,29 +17,21 @@ type Rule struct {
 	dao.Rule
 }
 
+// 查询
+// get /rule/{id}
 func (r *RuleController) GetBy(id string) mvc.View {
-	v, err := r.MetricDao.Get(dao.RuleTable, id)
+	v, err := r.RuleDao.Get(id)
 	if err != nil {
 		fmt.Printf("rule/id error, %s", err)
 	}
-	if len(v) == 0 {
-		return mvc.View{Name: "metric/rule.html", Layout: iris.NoLayout, Data: iris.Map{
-			"Id":   id,
-			"Rule": dao.Rule{},
-		}}
-	}
-	var rule dao.Rule
-	err = json.Unmarshal(v, &rule)
-	if err != nil {
-		fmt.Printf("rule/id error, %s", err)
-	}
-	fmt.Print(rule)
 	return mvc.View{Name: "metric/rule.html", Layout: iris.NoLayout, Data: iris.Map{
 		"Id":   id,
-		"Rule": rule,
+		"Rule": v,
 	}}
 }
 
+// 新增
+// post /rule/add
 func (r *RuleController) PostAdd() iris.Map {
 	rule := Rule{}
 	err := r.Ctx.ReadJSON(&rule)
@@ -49,7 +40,7 @@ func (r *RuleController) PostAdd() iris.Map {
 	}
 	var daoRule = dao.Rule{rule.Type, rule.Max, rule.Min, rule.Val, rule.Time,
 		rule.Count, rule.Mails}
-	err = r.MetricDao.PutByStruct(dao.RuleTable, rule.Id, daoRule)
+	err = r.RuleDao.Add(rule.Id, daoRule)
 	if err != nil {
 		return iris.Map{"code": iris.StatusInternalServerError, "msg": err.Error()}
 	}

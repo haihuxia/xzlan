@@ -16,8 +16,8 @@ type Mail struct {
 	port int64
 }
 
-func NewMail(user, password, host string) Mail {
-	return Mail{user, password, host, 25}
+func NewMail(user, password, host string) *Mail {
+	return &Mail{user, password, host, 25}
 }
 
 func (m *Mail) Send(to string, content string) error {
@@ -27,7 +27,7 @@ func (m *Mail) Send(to string, content string) error {
 	}
 	var body bytes.Buffer
 	body.Write([]byte("To: " + to + "\r\nFrom: 告警<" + m.user +
-		">\r\nSubject: 接口耗时告警\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"))
+		">\r\nSubject: 【告警】接口耗时超限\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"))
 	err = t.ExecuteTemplate(&body, "template.html", template.HTML(content))
 	if err != nil {
 		fmt.Println(err)

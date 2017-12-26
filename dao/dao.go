@@ -8,19 +8,14 @@ import (
 	"strings"
 )
 
-const (
-	ApiTable = "api"
-	RuleTable = "rule"
-)
-
 type Dao struct {
 	Db *bolt.DB
 }
 
-func NewDao(dbPath string) (Dao, error) {
+func NewDao(dbPath string) (*Dao, error) {
 	boltDb, err := bolt.Open(dbPath, 0600, &bolt.Options{Timeout: 2 * time.Second})
 	if err != nil {
-		return Dao{}, err
+		return &Dao{}, err
 	}
 	err = boltDb.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(ApiTable))
@@ -33,7 +28,7 @@ func NewDao(dbPath string) (Dao, error) {
 		}
 		return nil
 	})
-	return Dao{boltDb}, err
+	return &Dao{boltDb}, err
 }
 
 func (dao *Dao) CreateTable(table string) error {
@@ -57,21 +52,18 @@ func (dao *Dao) PutByByte(table string, key string, value []byte) error {
 	})
 }
 
-func (dao *Dao) PutApi(api Api) error {
+func (dao *Dao) GetSeq(table string) (string, error) {
+	var seq string
 	err := dao.Db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(ApiTable))
 		v, err := b.NextSequence()
 		if err != nil {
 			return err
 		}
-		seq := strconv.FormatUint(v, 10)
-		api.Id = string(seq)
+		seq = strconv.FormatUint(v, 10)
 		return nil
 	})
-	if err != nil {
-		return err
-	}
-	return dao.PutByStruct(ApiTable, api.Id, api)
+	return seq, err
 }
 
 func (dao *Dao) UpdateApi(api Api) error {

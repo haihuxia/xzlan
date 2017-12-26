@@ -12,7 +12,7 @@
         <div class="layui-form-item">
             <label class="layui-form-label"><span style="color: red">*</span>值限定</label>
             <div class="layui-input-inline" style="width: 100px">
-                <select id="type" name="type" required lay-filter="type">
+                <select id="type" name="type" lay-verify="required" lay-filter="type">
                     <option value="">类型</option>
                     <option value="min">大于</option>
                     <option value="max">小于</option>
@@ -29,18 +29,19 @@
             <div class="layui-input-inline" id="val" style="width: 100px; display:none">
                 <input type="text" id="valInput" name="val" class="layui-input" value="<<.Rule.Val>>">
             </div>
+            <div class="layui-form-mid layui-word-aux">单位：毫秒</div>
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label"><span style="color: red">*</span>时间范围</label>
             <div class="layui-input-inline" style="width: 100px">
-                <input type="text" name="time" required class="layui-input" value="<<.Rule.Time>>">
+                <input type="text" name="time" lay-verify="required" class="layui-input" value="<<.Rule.Time>>">
             </div>
             <div class="layui-form-mid layui-word-aux">单位：分钟</div>
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label"><span style="color: red">*</span>匹配次数</label>
             <div class="layui-input-inline" style="width: 100px">
-                <input type="text" name="count" required class="layui-input" value="<<.Rule.Count>>">
+                <input type="text" name="count" lay-verify="required" class="layui-input" value="<<.Rule.Count>>">
             </div>
         </div>
         <div class="layui-form-item">
@@ -93,27 +94,32 @@
             function typeFunc(v) {
                 if (v === "max") {
                     $("#max").show();
+                    $("#maxInput").attr("lay-verify", "required");
                     $("#min").hide();
-                    $("#minInput").val("");
+                    $("#minInput").val("").removeAttr("lay-verify");
                     $("#val").hide();
-                    $("#valInput").val("");
+                    $("#valInput").val("").removeAttr("lay-verify");
                 } else if (v === "min") {
                     $("#max").hide();
-                    $("#maxInput").val("");
+                    $("#maxInput").val("").removeAttr("lay-verify");
                     $("#min").show();
+                    $("#minInput").attr("lay-verify", "required");
                     $("#val").hide();
-                    $("#valInput").val("");
+                    $("#valInput").val("").removeAttr("lay-verify");
                 } else if (v === "range") {
                     $("#max").show();
+                    $("#maxInput").attr("lay-verify", "required");
                     $("#min").show();
+                    $("#minInput").attr("lay-verify", "required");
                     $("#val").hide();
-                    $("#valInput").val("");
+                    $("#valInput").val("").removeAttr("lay-verify");
                 } else if (v === "val") {
                     $("#max").hide();
-                    $("#maxInput").val("");
+                    $("#maxInput").val("").removeAttr("lay-verify");
                     $("#min").hide();
-                    $("#minInput").val("");
+                    $("#minInput").val("").removeAttr("lay-verify");
                     $("#val").show();
+                    $("#valInput").attr("lay-verify", "required");
                 }
             }
         });
