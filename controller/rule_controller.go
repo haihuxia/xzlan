@@ -24,7 +24,7 @@ func (r *RuleController) GetBy(id string) mvc.View {
 	if err != nil {
 		fmt.Printf("rule/id error, %s", err)
 	}
-	return mvc.View{Name: "metric/rule.html", Layout: iris.NoLayout, Data: iris.Map{
+	return mvc.View{Name: "rule/rule.html", Layout: iris.NoLayout, Data: iris.Map{
 		"Id":   id,
 		"Rule": v,
 	}}

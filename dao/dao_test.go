@@ -11,7 +11,7 @@ func TestDao_CreateTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = dao.CreateTable(ApiTable)
+	err = dao.CreateTable(NoteTable)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,7 +24,7 @@ func TestDao_DeleteTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = dao.DeleteTable(ApiTable)
+	err = dao.DeleteTable(NoteTable)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +37,7 @@ func TestDao_PutByStruct(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api := Api{"1", "user", "get", "查询接口", "stop"}
+	api := Api{"1", "user", "get", "查询接口", "stop", ""}
 	err = dao.PutByStruct(ApiTable, "1", api)
 	if err != nil {
 		t.Fatal(err)

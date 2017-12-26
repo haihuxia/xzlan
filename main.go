@@ -56,16 +56,21 @@ func main() {
 		conf.Other["MailHost"].(string))
 	apiDao := dao.NewApiDao(daoDb)
 	ruleDao := dao.NewRuleDao(daoDb)
-	apiAlert := alert.NewAlert(apiDao, ruleDao, alertMail, conf.Other["EsUrl"].(string))
-	app.Controller("/apis", new(controller.ApiController), apiDao, apiAlert)
+	noteDao := dao.NewNoteDao(daoDb)
+	apiAlert := alert.NewAlert(apiDao, ruleDao, noteDao, alertMail, conf.Other["EsUrl"].(string))
+	app.Controller("/apis", new(controller.ApiController), apiDao, ruleDao, apiAlert)
 	app.Controller("/rule", new(controller.RuleController), ruleDao)
+	app.Controller("/notes", new(controller.NoteController), noteDao)
 
 	app.Handle("GET", "/", func(ctx iris.Context) {
 		ctx.View("index.html")
 	})
 
 	app.Get("/api", func(ctx iris.Context) {
-		ctx.View("metric/apis.html")
+		ctx.View("api/apis.html")
+	})
+	app.Get("/note", func(ctx iris.Context) {
+		ctx.View("note/notes.html")
 	})
 
 	app.Configure(iris.WithConfiguration(conf))

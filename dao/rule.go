@@ -6,6 +6,7 @@ const RuleTable = "rule"
 
 // 告警规则
 // Api.Id 与 rule 表的 key 一致
+// 以 Api.Id 为 key
 type Rule struct {
 	Type string `json:"type"`
 	Max string `json:"max"`

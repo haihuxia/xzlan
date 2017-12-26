@@ -1,0 +1,48 @@
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend>告警记录</legend>
+</fieldset>
+<form class="layui-form" action="">
+    <div class="layui-form-item">
+        <label class="layui-form-label">总条数：<span id="count"></span></label>
+    </div>
+    <div class="layui-form-item">
+        <table id="noteTb"></table>
+    </div>
+</form>
+<script type="text/html" id="remarkTpl">
+    {{d.remark}}
+    {{#  if(d.status === "0"){ }}
+        <span class="layui-badge">已告警</span>&nbsp;<span class="layui-badge layui-bg-blue">已通知</span>
+    {{#  } else { }}
+        <span class="layui-badge">已告警</span>&nbsp;<span class="layui-badge layui-bg-gray">未通知</span>
+    {{#  } }}
+</script>
+
+<script>
+    layui.use(['jquery', 'table'], function () {
+        var table = layui.table;
+        var $ = layui.$;
+
+        $("#apiLi").removeClass("layui-this");
+        $("#noteLi").removeClass("layui-this").addClass("layui-this");
+
+        table.render({
+            elem: '#noteTb'
+            , height: '320'
+            , url: '/notes'
+            , page: false
+            , cols: [[
+                {field: 'time', title: '时间', width: '17%'}
+                , {field: 'remark', title: '记录', templet: '#remarkTpl'}
+            ]]
+            , limits: [10, 20, 30]
+            , initSort: {
+                field: 'time'
+                , type: 'desc'
+            },
+            done: function (res, curr, count) {
+                $("#count").text(count);
+            }
+        });
+    });
+</script>

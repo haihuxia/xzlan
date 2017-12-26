@@ -17,6 +17,7 @@ var chanMap = make(map[string]chan bool)
 type Alert struct {
 	ApiDao  *dao.ApiDao
 	RuleDao *dao.RuleDao
+	NoteDao *dao.NoteDao
 	Mail    *mail.Mail
 	EsUrl   string
 }
@@ -25,8 +26,8 @@ type Message struct {
 	Message string `json:"message"`
 }
 
-func NewAlert(apiDao *dao.ApiDao, ruleDao *dao.RuleDao, mail *mail.Mail, esUrl string) *Alert {
-	return &Alert{apiDao, ruleDao, mail, esUrl}
+func NewAlert(apiDao *dao.ApiDao, ruleDao *dao.RuleDao, noteDao *dao.NoteDao, mail *mail.Mail, esUrl string) *Alert {
+	return &Alert{apiDao, ruleDao, noteDao, mail, esUrl}
 }
 
 func (a *Alert) Start() error {
@@ -93,6 +94,9 @@ func (a *Alert) job(api dao.Api, rule dao.Rule) {
 		fmt.Printf("error %s \n", err)
 	}
 	if result.Hits.TotalHits >= c {
+		note := "接口：" + api.Name + "." + api.Method + "，耗时检查：实际 " +
+			strconv.FormatInt(result.Hits.TotalHits, 10) + " 次 >= 限制 " + rule.Count + " 次"
+		a.NoteDao.Add(note, api.Id)
 		fmt.Printf("%s %s %d hit: %d 【命中】 \n", api.Name, api.Method, c, result.Hits.TotalHits)
 		body := "接口：<b>" + api.Name + "</b><br/>方法：<b>" + api.Method + "</b><br/>耗时匹配次数：<b>" +
 			strconv.FormatInt(result.Hits.TotalHits, 10) + "</b>（告警规则：大于 " + rule.Min + "ms, " +
@@ -116,6 +120,7 @@ func (a *Alert) job(api dao.Api, rule dao.Rule) {
 				fmt.Printf("error: %s \n", err)
 			}
 		}
+		a.NoteDao.Update(note, api.Id, "0")
 	} else {
 		fmt.Printf("%s %s %d hit: %d 【未命中】 \n", api.Name, api.Method, c, result.Hits.TotalHits)
 	}

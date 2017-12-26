@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func TestApiDao_PutApi(t *testing.T) {
+func TestApiDao_Add(t *testing.T) {
 	dao, err := NewDao("/Users/tiger/project/logs/go/xzlan.db")
 	defer dao.Db.Close()
 
@@ -13,14 +13,14 @@ func TestApiDao_PutApi(t *testing.T) {
 		t.Fatal(err)
 	}
 	apiDao := NewApiDao(dao)
-	api := Api{"", "role", "add", "新增角色", "stop"}
+	api := Api{"", "role", "add", "新增角色", "stop", ""}
 	err = apiDao.Add(api)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestApiDao_GetApis(t *testing.T) {
+func TestApiDao_GetBy(t *testing.T) {
 	dao, err := NewDao("/Users/tiger/project/logs/go/xzlan.db")
 	defer dao.Db.Close()
 
@@ -31,7 +31,7 @@ func TestApiDao_GetApis(t *testing.T) {
 
 	var name = "user"
 	var method string
-	apis, err := apiDao.GetApis(name, method)
+	apis, err := apiDao.GetBy(name, method)
 	if err != nil {
 		t.Fatal(err)
 	}
