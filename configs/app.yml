@@ -19,9 +19,9 @@ RemoteAddrHeaders:
   X-Forwarded-For: false
   X-Real-Ip: false
 Other: {
-  EsUrl: "http://10.0.21.44:9200",
-  LogPath: "/Users/tiger/project/logs/xzlan/",
-  DbPath: "/Users/tiger/project/logs/go/xzlan.db",
+  EsUrl: "",
+  LogPath: "",
+  DbPath: "",
   MailHost: "",
   MailUser: "",
   MailPasword: ""
