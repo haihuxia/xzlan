@@ -24,18 +24,13 @@ func NewNoteDao(dao *Dao) *NoteDao {
 }
 
 func (n *NoteDao) Add(remark string, id string) (string, error) {
-	note := new(Note)
-	note.Time = now()
-	note.Status = "1" // 1: 未通知, 2: 不通知，0: 已通知
-	note.Remark = remark
+	// 1: 未通知, 2: 不通知，0: 已通知
+	note := &Note{now(), "1", remark}
 	return note.Time, n.dao.PutByStruct(NoteTable, id, note)
 }
 
 func (n *NoteDao) Update(remark string, id string, status string) error {
-	note := new(Note)
-	note.Time = now()
-	note.Status = status
-	note.Remark = remark
+	note := &Note{now(), status, remark}
 	return n.dao.PutByStruct(NoteTable, id, note)
 }
 

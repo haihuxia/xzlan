@@ -11,7 +11,7 @@ func TestDao_DeleteTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = dao.DeleteTable(RuleTable)
+	err = dao.DeleteTable(NoteTable)
 	if err != nil {
 		t.Fatal(err)
 	}

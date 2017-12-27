@@ -116,6 +116,7 @@ func (a *Alert) job(api dao.Api, rule dao.Rule) {
 				fmt.Printf("time.Parse error %s \n", err)
 			}
 			if delayTime.After(time.Now()) {
+				a.NoteDao.Add(note + ", 下次通知时间：" + delayTime.Format("2006-01-02 15:04:05"), api.Id)
 				return
 			}
 		}
