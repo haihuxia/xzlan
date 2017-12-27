@@ -87,17 +87,40 @@ func (a *Alert) job(api dao.Api, rule dao.Rule) {
 	t := time.Now().Format("2006.01.02")
 	result, err := client.Search("logstash-" + t).Query(query).Do(context.Background())
 	if err != nil {
-		fmt.Printf("error %s \n", err)
+		fmt.Printf("elk query error %s \n", err)
+		return
 	}
 	c, err := strconv.ParseInt(rule.Count, 10, 64)
 	if err != nil {
-		fmt.Printf("error %s \n", err)
+		fmt.Printf("parseInt error %s \n", err)
+		return
 	}
 	if result.Hits.TotalHits >= c {
+		// 添加告警记录
 		note := "接口：" + api.Name + "." + api.Method + "，耗时检查：实际 " +
 			strconv.FormatInt(result.Hits.TotalHits, 10) + " 次 >= 限制 " + rule.Count + " 次"
-		a.NoteDao.Add(note, api.Id)
+		notifyTime, err := a.NoteDao.Add(note, api.Id)
+		if err != nil {
+			fmt.Printf("add note error %s \n", err)
+		}
 		fmt.Printf("%s %s %d hit: %d 【命中】 \n", api.Name, api.Method, c, result.Hits.TotalHits)
+
+		// 判断是否需要发送邮件
+		if rule.Delay != "" && api.NotifyTime != "" {
+			notifyTime, err := time.Parse("2006-01-02 15:04:05", api.NotifyTime)
+			if err != nil {
+				fmt.Printf("time.Parse error %s \n", err)
+			}
+			delayTime, err := dao.DelayToTime(rule.Delay, notifyTime)
+			if err != nil {
+				fmt.Printf("time.Parse error %s \n", err)
+			}
+			if delayTime.After(time.Now()) {
+				return
+			}
+		}
+
+		// 发送邮件
 		body := "接口：<b>" + api.Name + "</b><br/>方法：<b>" + api.Method + "</b><br/>耗时匹配次数：<b>" +
 			strconv.FormatInt(result.Hits.TotalHits, 10) + "</b>（告警规则：大于 " + rule.Min + "ms, " +
 			rule.Count + "次）<br/><br/>原始日志："
@@ -108,7 +131,6 @@ func (a *Alert) job(api dao.Api, rule dao.Rule) {
 			body = body + "<br/>" + m.Message
 		}
 		tos := strings.Split(rule.Mails, ";")
-		fmt.Printf("tos: %s", tos)
 		for i := 0; i < len(tos); i++ {
 			if tos[i] == "" {
 				continue
@@ -120,7 +142,10 @@ func (a *Alert) job(api dao.Api, rule dao.Rule) {
 				fmt.Printf("error: %s \n", err)
 			}
 		}
+		// 修改状态，告警已通知
 		a.NoteDao.Update(note, api.Id, "0")
+		api.NotifyTime = notifyTime
+		a.ApiDao.Update(api)
 	} else {
 		fmt.Printf("%s %s %d hit: %d 【未命中】 \n", api.Name, api.Method, c, result.Hits.TotalHits)
 	}

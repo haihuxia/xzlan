@@ -2,10 +2,10 @@ package controller
 
 import (
 	"xzlan/dao"
-	"iris/mvc"
 	"fmt"
-	"iris"
 	"xzlan/alert"
+	"github.com/kataras/iris"
+	"github.com/kataras/iris/mvc"
 )
 
 type ApiController struct {

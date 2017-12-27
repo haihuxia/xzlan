@@ -4,19 +4,6 @@ import (
 	"testing"
 )
 
-func TestDao_CreateTable(t *testing.T) {
-	dao, err := NewDao("/Users/tiger/project/logs/go/xzlan.db")
-	defer dao.Db.Close()
-
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = dao.CreateTable(NoteTable)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
 func TestDao_DeleteTable(t *testing.T) {
 	dao, err := NewDao("/Users/tiger/project/logs/go/xzlan.db")
 	defer dao.Db.Close()
@@ -24,7 +11,7 @@ func TestDao_DeleteTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = dao.DeleteTable(NoteTable)
+	err = dao.DeleteTable(RuleTable)
 	if err != nil {
 		t.Fatal(err)
 	}

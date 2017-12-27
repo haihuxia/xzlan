@@ -13,7 +13,7 @@ func TestNoteDao_Add(t *testing.T) {
 		t.Fatal(err)
 	}
 	noteDao := NewNoteDao(dao)
-	err = noteDao.Add("接口：user.add，耗时检查：实际 5 次 >= 限制 5 次", "2")
+	_, err = noteDao.Add("接口：user.add，耗时检查：实际 5 次 >= 限制 5 次", "2")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -15,9 +15,9 @@
                 <select id="type" name="type" lay-verify="required" lay-filter="type">
                     <option value="">类型</option>
                     <option value="min">大于</option>
-                    <option value="max">小于</option>
-                    <option value="val">等于</option>
-                    <option value="range">范围</option>
+                    <option value="max" disabled>小于</option>
+                    <option value="val" disabled>等于</option>
+                    <option value="range" disabled>范围</option>
                 </select>
             </div>
             <div class="layui-input-inline" id="max" style="width: 100px">
@@ -42,6 +42,18 @@
             <label class="layui-form-label"><span style="color: red">*</span>匹配次数</label>
             <div class="layui-input-inline" style="width: 100px">
                 <input type="text" name="count" lay-verify="required" class="layui-input" value="<<.Rule.Count>>">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span style="color: red">*</span>通知频率</label>
+            <div class="layui-input-inline" style="width: 100px">
+                <select name="delay" lay-verify="required">
+                    <option value="">频率</option>
+                    <option value="0h" <<if eq .Rule.Delay "0h">> selected <<end>>>及时</option>
+                    <option value="1h" <<if eq .Rule.Delay "1h">> selected <<end>>>每小时</option>
+                    <option value="30m" <<if eq .Rule.Delay "30m">> selected <<end>>>每半小时</option>
+                    <option value="1d" <<if eq .Rule.Delay "1d">> selected <<end>>>每天</option>
+                </select>
             </div>
         </div>
         <div class="layui-form-item">

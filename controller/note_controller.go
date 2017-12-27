@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"iris/mvc"
 	"xzlan/dao"
-	"iris"
+	"github.com/kataras/iris/mvc"
+	"github.com/kataras/iris"
 )
 
 type NoteController struct {

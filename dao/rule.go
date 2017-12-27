@@ -1,6 +1,10 @@
 package dao
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+	"strconv"
+)
 
 const RuleTable = "rule"
 
@@ -14,6 +18,7 @@ type Rule struct {
 	Val string `json:"val"`
 	Time string `json:"time"`
 	Count string `json:"count"`
+	Delay string `json:"delay"`
 	Mails string `json:"mails"`
 }
 
@@ -36,4 +41,28 @@ func (r *RuleDao) Get(id string) (rule Rule, err error) {
 
 func (r *RuleDao) Add(id string, rule Rule) error {
 	return r.dao.PutByStruct(RuleTable, id, rule)
+}
+
+func DelayToTime(delay string, t time.Time) (time.Time, error) {
+	if delay == "" {
+		return t, nil
+	}
+	i := len(delay) - 1
+	last := string(delay[i])
+	num, err := strconv.ParseInt(string(delay[:i]), 10, 64)
+	if err != nil {
+		return t, err
+	}
+	switch last {
+	case "d":
+		// 天
+		t = t.AddDate(0, 0, int(num))
+	case "m":
+		// 分钟
+		t = t.Add(time.Duration(num) * time.Minute)
+	case "h":
+		// 小时
+		t = t.Add(time.Duration(num) * time.Hour)
+	}
+	return t, nil
 }

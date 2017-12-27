@@ -2,9 +2,9 @@ package controller
 
 import (
 	"xzlan/dao"
-	"iris/mvc"
-	"iris"
 	"fmt"
+	"github.com/kataras/iris/mvc"
+	"github.com/kataras/iris"
 )
 
 type RuleController struct {
@@ -39,7 +39,7 @@ func (r *RuleController) PostAdd() iris.Map {
 		return iris.Map{"code": iris.StatusInternalServerError, "msg": err.Error()}
 	}
 	var daoRule = dao.Rule{rule.Type, rule.Max, rule.Min, rule.Val, rule.Time,
-		rule.Count, rule.Mails}
+		rule.Count, rule.Delay, rule.Mails}
 	err = r.RuleDao.Add(rule.Id, daoRule)
 	if err != nil {
 		return iris.Map{"code": iris.StatusInternalServerError, "msg": err.Error()}
