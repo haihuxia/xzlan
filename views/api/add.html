@@ -29,7 +29,7 @@
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label"></label>
-            <button class="layui-btn" lay-submit lay-filter="addApi">
+            <button class="layui-btn" lay-submit lay-filter="add">
                 <i class="layui-icon">&#xe615;</i>提交
             </button>
         </div>
@@ -39,7 +39,7 @@
         layui.use(['form', 'jquery'], function () {
             var form = layui.form;
             var $ = layui.$;
-            form.on('submit(addApi)', function (d) {
+            form.on('submit(add)', function (d) {
                 $.ajax({
                     dataType: "json",
                     type: "POST",

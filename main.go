@@ -57,20 +57,24 @@ func main() {
 	apiDao := dao.NewApiDao(daoDb)
 	ruleDao := dao.NewRuleDao(daoDb)
 	noteDao := dao.NewNoteDao(daoDb)
-	apiAlert := alert.NewAlert(apiDao, ruleDao, noteDao, alertMail, conf.Other["EsUrl"].(string))
+	globalmailDao := dao.NewGlobalMailDao(daoDb)
+	apiAlert := alert.NewAlert(apiDao, ruleDao, noteDao, globalmailDao, alertMail, conf.Other["EsUrl"].(string))
 	app.Controller("/apis", new(controller.ApiController), apiDao, ruleDao, apiAlert)
 	app.Controller("/rule", new(controller.RuleController), ruleDao)
 	app.Controller("/notes", new(controller.NoteController), noteDao)
+	app.Controller("/globalmails", new(controller.GlobalMailController), globalmailDao)
 
 	app.Handle("GET", "/", func(ctx iris.Context) {
 		ctx.View("index.html")
 	})
-
 	app.Get("/api", func(ctx iris.Context) {
 		ctx.View("api/apis.html")
 	})
 	app.Get("/note", func(ctx iris.Context) {
 		ctx.View("note/notes.html")
+	})
+	app.Get("/globalmail", func(ctx iris.Context) {
+		ctx.View("globalmail/globalmails.html")
 	})
 
 	app.Configure(iris.WithConfiguration(conf))

@@ -13,7 +13,7 @@
             <button class="layui-btn" lay-submit lay-filter="search">
                 <i class="layui-icon">&#xe615;</i>查询
             </button>
-            <button class="layui-btn" id="addApiBtn" type="button">
+            <button class="layui-btn" id="addBtn" type="button">
                 <i class="layui-icon">&#xe61f;</i>新增
             </button>
         </div>
@@ -47,6 +47,7 @@
 
         $("#apiLi").removeClass("layui-this").addClass("layui-this");
         $("#noteLi").removeClass("layui-this");
+        $("#globalmailLi").removeClass("layui-this");
 
         var apiTable = table.render({
             elem: '#apiTb'
@@ -95,7 +96,7 @@
                                 layer.close(index);
                                 apiTable.reload();
                             } else if (resultCode === 500) {
-                                layer.msg('启动失败，' + result["msg"], {time: 3000, icon:2});
+                                layer.msg('删除失败，' + result["msg"], {time: 3000, icon:2});
                             }
                         }
                     });
@@ -156,7 +157,7 @@
             return false;
         });
 
-        $("#addApiBtn").click(function () {
+        $("#addBtn").click(function () {
             layer.open({
                 type: 2,
                 title: '新增接口',

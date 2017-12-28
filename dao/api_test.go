@@ -3,7 +3,6 @@ package dao
 import (
 	"testing"
 	"fmt"
-	"time"
 )
 
 func TestApiDao_Add(t *testing.T) {
@@ -56,15 +55,6 @@ func TestApiDao_GetAll(t *testing.T) {
 	for i := 0; i < len(apis); i++ {
 		fmt.Printf("value[%d]: %s \n", i, apis[i])
 	}
-
-	tt, _ := time.Parse("2006-01-02 15:04:05", "2017-12-27 10:28:28")
-	tt = tt.Add(2 * time.Hour)
-	fmt.Println(tt)
-	fmt.Printf("在之后吗？ %t \n", tt.After(time.Now()))
-
-	var aa = "14d"
-	fmt.Println(string(aa[len(aa)-1]))
-	fmt.Println(string(aa[:len(aa)-1]))
 }
 
 

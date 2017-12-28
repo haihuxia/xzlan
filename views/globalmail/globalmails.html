@@ -1,0 +1,95 @@
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend>查询全局邮件</legend>
+</fieldset>
+<form class="layui-form" action="">
+    <div class="layui-form-item">
+        <div class="layui-input-inline">
+            <input type="text" name="mail" placeholder="email" class="layui-input">
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-submit lay-filter="search">
+                <i class="layui-icon">&#xe615;</i>查询
+            </button>
+            <button class="layui-btn" id="addBtn" type="button">
+                <i class="layui-icon">&#xe61f;</i>新增
+            </button>
+        </div>
+        <label class="layui-form-label">总条数：<span id="count"></span></label>
+    </div>
+    <div class="layui-form-item" style="width: 60%">
+        <table id="mailTb" lay-filter="mailTb"></table>
+    </div>
+</form>
+<script type="text/html" id="toolBar">
+    <a title="删除" lay-event="del"><i class="layui-icon">&#xe640;</i></a>
+</script>
+<script>
+    layui.use(['form', 'jquery', 'table', 'layer'], function () {
+        var form = layui.form;
+        var layer = layui.layer;
+        var table = layui.table;
+        var $ = layui.$;
+
+        $("#apiLi").removeClass("layui-this");
+        $("#globalmailLi").removeClass("layui-this").addClass("layui-this");
+        $("#noteLi").removeClass("layui-this");
+
+        var mailTable = table.render({
+            elem: '#mailTb'
+            , height: '320'
+            , url: '/globalmails'
+            , page: false
+            , cols: [[
+                {field: 'mail', title: '邮箱'}
+                , {title: '操作', width: '13%', toolbar: '#toolBar'}
+            ]]
+            , limits: [10, 20, 30]
+            , done: function (res, curr, count) {
+                $("#count").text(count);
+            }
+        });
+        table.on('tool(mailTb)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+            if (layEvent === "del") {
+                layer.confirm('确定删除吗？', function (index) {
+                    $.ajax({
+                        dataType: "json",
+                        type: "DELETE",
+                        url: "/globalmails/" + data["mail"],
+                        success: function (result) {
+                            var resultCode = result["code"];
+                            if (resultCode === 200) {
+                                obj.del();
+                                layer.close(index);
+                                mailTable.reload();
+                            } else if (resultCode === 500) {
+                                layer.msg('删除失败，' + result["msg"], {time: 3000, icon: 2});
+                            }
+                        }
+                    });
+                });
+            }
+        });
+
+        form.on('submit(search)', function (d) {
+            mailTable.reload({
+                where: {
+                    mail: d.field["mail"]
+                }
+            });
+            return false;
+        });
+
+        $("#addBtn").click(function () {
+            layer.open({
+                type: 2,
+                title: '新增全局邮件',
+                shadeClose: true,
+                shade: 0.8,
+                area: ['455px', '30%'],
+                content: '/globalmails/add'
+            });
+        });
+    });
+</script>

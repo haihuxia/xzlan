@@ -34,13 +34,13 @@ func (a *ApiController) GetBy(id string) mvc.View {
 	if err != nil {
 		fmt.Printf("apis/id error, %s", err)
 	}
-	return mvc.View{Name: "api/editApi.html", Layout: iris.NoLayout, Data: v}
+	return mvc.View{Name: "api/edit.html", Layout: iris.NoLayout, Data: v}
 }
 
 // 新增
 // get /apis/add
 func (a *ApiController) GetAdd() mvc.View {
-	return mvc.View{Name: "api/addApi.html", Layout: iris.NoLayout}
+	return mvc.View{Name: "api/add.html", Layout: iris.NoLayout}
 }
 
 // 新增

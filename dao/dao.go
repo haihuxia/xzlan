@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"strings"
+	"bytes"
 )
 
 type Dao struct {
@@ -27,6 +28,10 @@ func NewDao(dbPath string) (*Dao, error) {
 			return err
 		}
 		_, err = tx.CreateBucketIfNotExists([]byte(NoteTable))
+		if err != nil {
+			return err
+		}
+		_, err = tx.CreateBucketIfNotExists([]byte(GlobalMailTable))
 		if err != nil {
 			return err
 		}
@@ -151,6 +156,30 @@ func (dao *Dao) GetNotesAll() (notes []Note, err error) {
 				return e
 			}
 			notes = append(notes, note)
+			return nil
+		})
+	})
+	return
+}
+
+func (dao *Dao) GetGlobalMailsByPrefix(table, prefix []byte) (values []GlobalMail, err error) {
+	err = dao.Db.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket(table).Cursor()
+		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
+			mail := &GlobalMail{string(v)}
+			values = append(values, *mail)
+		}
+		return nil
+	})
+	return
+}
+
+func (dao *Dao) GetGlobalMailsAll(table string) (values []GlobalMail, err error) {
+	err = dao.Db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(table))
+		return b.ForEach(func(k, v []byte) error {
+			mail := &GlobalMail{string(v)}
+			values = append(values, *mail)
 			return nil
 		})
 	})

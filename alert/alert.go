@@ -15,19 +15,21 @@ import (
 var chanMap = make(map[string]chan bool)
 
 type Alert struct {
-	ApiDao  *dao.ApiDao
-	RuleDao *dao.RuleDao
-	NoteDao *dao.NoteDao
-	Mail    *mail.Mail
-	EsUrl   string
+	ApiDao        *dao.ApiDao
+	RuleDao       *dao.RuleDao
+	NoteDao       *dao.NoteDao
+	GlobalMailDao *dao.GlobalMailDao
+	Mail          *mail.Mail
+	EsUrl         string
 }
 
 type Message struct {
 	Message string `json:"message"`
 }
 
-func NewAlert(apiDao *dao.ApiDao, ruleDao *dao.RuleDao, noteDao *dao.NoteDao, mail *mail.Mail, esUrl string) *Alert {
-	return &Alert{apiDao, ruleDao, noteDao, mail, esUrl}
+func NewAlert(apiDao *dao.ApiDao, ruleDao *dao.RuleDao, noteDao *dao.NoteDao, globalMailDao *dao.GlobalMailDao,
+	mail *mail.Mail, esUrl string) *Alert {
+	return &Alert{apiDao, ruleDao, noteDao, globalMailDao, mail, esUrl}
 }
 
 func (a *Alert) Start() error {
@@ -116,7 +118,7 @@ func (a *Alert) job(api dao.Api, rule dao.Rule) {
 				fmt.Printf("time.Parse error %s \n", err)
 			}
 			if delayTime.After(time.Now()) {
-				a.NoteDao.Add(note + ", 下次通知时间：" + delayTime.Format("2006-01-02 15:04:05"), api.Id)
+				a.NoteDao.Add(note+", 下次通知时间："+delayTime.Format("2006-01-02 15:04:05"), api.Id)
 				return
 			}
 		}
@@ -138,7 +140,19 @@ func (a *Alert) job(api dao.Api, rule dao.Rule) {
 			}
 			err = a.Mail.Send(tos[i], body)
 			if err == nil {
-				fmt.Printf("邮件发送成功 %s \n", rule.Mails)
+				fmt.Printf("邮件发送成功 %s \n", tos[i])
+			} else {
+				fmt.Printf("error: %s \n", err)
+			}
+		}
+		globalMails, err := a.GlobalMailDao.GetAll()
+		if err != nil {
+			fmt.Printf("alert GlobalMailDao.GetAll error %s \n", err)
+		}
+		for i := 0; i < len(globalMails); i++ {
+			err = a.Mail.Send(globalMails[i].Mail, body)
+			if err == nil {
+				fmt.Printf("邮件发送成功 %s \n", globalMails[i].Mail)
 			} else {
 				fmt.Printf("error: %s \n", err)
 			}
