@@ -53,7 +53,7 @@ func main() {
 	defer daoDb.Db.Close()
 
 	alertMail := mail.NewMail(conf.Other["MailUser"].(string), conf.Other["MailPasword"].(string),
-		conf.Other["MailHost"].(string))
+		conf.Other["MailHost"].(string), conf.Other["MailHtmlTplUrl"].(string))
 	apiDao := dao.NewApiDao(daoDb)
 	ruleDao := dao.NewRuleDao(daoDb)
 	noteDao := dao.NewNoteDao(daoDb)

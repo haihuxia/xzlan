@@ -24,5 +24,6 @@ Other: {
   DbPath: "",
   MailHost: "",
   MailUser: "",
-  MailPasword: ""
+  MailPasword: "",
+  MailHtmlTplUrl: ""
 }

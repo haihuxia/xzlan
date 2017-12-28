@@ -25,6 +25,7 @@ Other: {
   MailHost: "", # email host, e.g. smtp.163.com
   MailUser: "", # email username
   MailPasword: "" # email password
+  MailHtmlTplUrl: "" # email content template, e.g. /data/template.html
 }
 ```
 
