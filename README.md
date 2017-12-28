@@ -35,4 +35,4 @@ Run app
 $ go run main.go
 ```
 
-Then Open xzlan in your browser `http://localhost:8080`.
+Then open `http://localhost:8080` in your browser.
