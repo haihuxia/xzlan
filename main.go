@@ -10,50 +10,51 @@ import (
 	"xzlan/controller"
 	"xzlan/alert"
 	"xzlan/mail"
+	"fmt"
+	"strings"
+	"path/filepath"
+	"io/ioutil"
+	"gopkg.in/yaml.v2"
 )
 
-func todayFilename() string {
-	today := time.Now().Format("2006-01-02")
-	return today + ".log"
-}
-
-func newLogFile(path string) *os.File {
-	filename := "/Users/tiger/project/logs/xzlan/" + todayFilename()
-	// open an output file, this will append to the today's file if server restarted.
-	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		panic(err)
-	}
-	return f
-}
-
 func main() {
-	conf := iris.YAML("./configs/app.yml")
+	args := os.Args[1:]
+	custConf := config(args)
+	
+	conf := iris.YAML("./config/app.yml")
+	if custConf.DbPath == "" {
+		custConf.EsUrl = conf.Other["EsUrl"].(string)
+		custConf.LogPath = conf.Other["LogPath"].(string)
+		custConf.DbPath = conf.Other["DbPath"].(string)
+		custConf.MailHost = conf.Other["MailHost"].(string)
+		custConf.MailUser = conf.Other["MailUser"].(string)
+		custConf.MailPasword = conf.Other["MailPasword"].(string)
+		custConf.MailHtmlTplUrl = conf.Other["MailHtmlTplUrl"].(string)
+	}
+	fmt.Println(custConf.String())
 
 	app := iris.New()
 
 	app.Use(recover.New())
 	app.Use(logger.New(logger.Config{Status:true, IP:false, Method:true, Path:true}))
 
-	app.Logger().Info("LogPath: ", conf.Other["LogPath"])
-	app.Logger().Info("DbPath: ", conf.Other["DbPath"])
-	//f := newLogFile(conf.Other["LogPath"])
-	//defer f.Close()
-	//app.Logger().AddOutput(newLogFile())
+	f := newLogFile(custConf.LogPath)
+	defer f.Close()
+
+	app.Logger().AddOutput(newLogFile(custConf.LogPath))
 
 	app.StaticWeb("/static", "./static")
-	app.RegisterView(iris.HTML("./views", ".html").Layout("layout/layout.html").Delims("<<", ">>"))
+	app.RegisterView(iris.HTML("./views", ".html").Layout("layout/layout.html").
+		Delims("<<", ">>"))
 
 	// Open DB
-	daPath := conf.Other["DbPath"]
-	daoDb, dbErr := dao.NewDao(daPath.(string))
+	daoDb, dbErr := dao.NewDao(custConf.DbPath)
 	if dbErr != nil {
 		app.Logger().Warn("open DB error: " + dbErr.Error())
 	}
 	defer daoDb.Db.Close()
 
-	alertMail := mail.NewMail(conf.Other["MailUser"].(string), conf.Other["MailPasword"].(string),
-		conf.Other["MailHost"].(string), conf.Other["MailHtmlTplUrl"].(string))
+	alertMail := mail.NewMail(custConf.MailUser, custConf.MailPasword, custConf.MailHost, custConf.MailHtmlTplUrl)
 	apiDao := dao.NewApiDao(daoDb)
 	ruleDao := dao.NewRuleDao(daoDb)
 	noteDao := dao.NewNoteDao(daoDb)
@@ -83,4 +84,72 @@ func main() {
 			app.Logger().Warn("Shutdown with error: " + err.Error())
 		}
 	}
+}
+
+func config(args []string) customizeConfig {
+	if len(args) == 0 {
+		fmt.Println("[warn] no profile specified, e.g. -config=/data/app.yml")
+	}
+	c := customizeConfig{}
+	for _, v := range args {
+		conf := strings.Split(v, "=")
+		if strings.Index(conf[0], "config") == -1 {
+			fmt.Println("no profile specified, e.g. -config=/data/app.yml")
+			os.Exit(-1)
+		}
+		if _, err := os.Stat(conf[1]); os.IsNotExist(err) {
+			fmt.Println("configuration file '" + conf[1] + "' does not exist")
+			os.Exit(-1)
+		}
+		fileExt := filepath.Ext(conf[1])
+		if fileExt != ".yml" {
+			fmt.Println("configuration file '" + conf[1] + "' invalid, please use extension .yml")
+			os.Exit(-1)
+		}
+		data, err := ioutil.ReadFile(conf[1])
+		if err != nil {
+			fmt.Println("configuration file '" + conf[1] + "' invalid")
+			os.Exit(-1)
+		}
+		if err := yaml.Unmarshal(data, &c); err != nil {
+			fmt.Println("configuration file '" + conf[1] + "' invalid")
+			os.Exit(-1)
+		}
+		break
+	}
+	return c
+}
+
+type customizeConfig struct {
+	EsUrl string `yaml:"EsUrl"`
+	LogPath string `yaml:"LogPath"`
+	DbPath string `yaml:"DbPath"`
+	MailHost string `yaml:"MailHost"`
+	MailUser string `yaml:"MailUser"`
+	MailPasword string `yaml:"MailPasword"`
+	MailHtmlTplUrl string `yaml:"MailHtmlTplUrl"`
+}
+
+func (c *customizeConfig) String() string {
+	str := fmt.Sprintf("print configuration info: \n")
+	str = str + fmt.Sprintf("EsUrl: %s \n", c.EsUrl)
+	str = str + fmt.Sprintf("LogPath: %s \n", c.LogPath)
+	str = str + fmt.Sprintf("DbPath: %s \n", c.DbPath)
+	str = str + fmt.Sprintf("MailHtmlTplUrl: %s \n", c.MailHtmlTplUrl)
+	str = str + fmt.Sprintf("load configuration done \n")
+	return str
+}
+
+func todayFilename() string {
+	today := time.Now().Format("2006-01-02")
+	return today + ".log"
+}
+
+func newLogFile(path string) *os.File {
+	filename := path + todayFilename()
+	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+	return f
 }

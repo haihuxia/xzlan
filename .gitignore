@@ -1,7 +1,7 @@
-#folder
+# folder
 target/
 
-#fixed file
+# fixed file
 .log
 .DS_Store
 *.iml
