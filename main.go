@@ -74,7 +74,7 @@ func main() {
 		ctx.View("globalmail/globalmails.html")
 	})
 
-	if err := app.Run(iris.Addr(":" + custConf.ServerPort), iris.WithoutBanner); err != nil {
+	if err := app.Run(iris.Addr(":" + custConf.ServerPort), iris.WithoutBanner, iris.WithoutVersionChecker); err != nil {
 		if err != iris.ErrServerClosed {
 			app.Logger().Warn("Shutdown with error: " + err.Error())
 		}
