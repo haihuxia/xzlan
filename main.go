@@ -46,7 +46,7 @@ func main() {
 
 	app.Logger().AddOutput(newLogFile(custConf.LogPath))
 
-	app.StaticWeb("/static", "./static")
+	app.StaticEmbedded("/static", "./static", Asset, AssetNames)
 	app.RegisterView(iris.HTML("./views", ".html").Layout("layout/layout.html").
 		Delims("<<", ">>").Binary(Asset, AssetNames))
 

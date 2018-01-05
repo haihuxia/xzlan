@@ -15,7 +15,7 @@ xzlan depends on these
 
 ## Getting Started
 
-Configuration `configs/app.yml`
+Configuration `./conf/app.yml`
 
 ```
 Other: {
@@ -36,7 +36,7 @@ Run app
 $ go get -u github.com/jteeuwen/go-bindata/...
 $ go-bindata static/... views/...
 $ go build
-$ ./xzlan
+$ ./xzlan -config=./conf/app.yml
 ```
 
 Then open `http://localhost:8001` in your browser.
