@@ -51,7 +51,6 @@ func (a *ApiController) PostAdd() iris.Map {
 	if err != nil {
 		return iris.Map{"code": iris.StatusInternalServerError, "msg": err.Error()}
 	}
-	fmt.Println(api)
 	api.Status = "stop"
 	err = a.ApiDao.Add(api)
 	if err != nil {

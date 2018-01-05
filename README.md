@@ -19,9 +19,10 @@ Configuration `configs/app.yml`
 
 ```
 Other: {
+  ServerProt: "" # default 8001
   EsUrl: "", # elasticsearch url, e.g. http://localhost:9200 
   LogPath: "", 
-  DbPath: "", # boltdb db filepath, e.g. /data/db/app.db
+  DbPath: "", # boltdb db filepath default ./alert.db, e.g. /data/db/app.db
   MailHost: "", # email host, e.g. smtp.163.com
   MailUser: "", # email username
   MailPasword: "" # email password
@@ -32,7 +33,10 @@ Other: {
 Run app
 
 ```
-$ go run main.go
+$ go get -u github.com/jteeuwen/go-bindata/...
+$ go-bindata static/... views/...
+$ go build
+$ ./xzlan
 ```
 
-Then open `http://localhost:8080` in your browser.
+Then open `http://localhost:8001` in your browser.

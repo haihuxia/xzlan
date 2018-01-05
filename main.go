@@ -13,23 +13,19 @@ import (
 	"fmt"
 	"strings"
 	"path/filepath"
-	"io/ioutil"
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
 )
 
 func main() {
 	args := os.Args[1:]
 	custConf := config(args)
-	
-	conf := iris.YAML("./config/app.yml")
+
 	if custConf.DbPath == "" {
-		custConf.EsUrl = conf.Other["EsUrl"].(string)
-		custConf.LogPath = conf.Other["LogPath"].(string)
-		custConf.DbPath = conf.Other["DbPath"].(string)
-		custConf.MailHost = conf.Other["MailHost"].(string)
-		custConf.MailUser = conf.Other["MailUser"].(string)
-		custConf.MailPasword = conf.Other["MailPasword"].(string)
-		custConf.MailHtmlTplUrl = conf.Other["MailHtmlTplUrl"].(string)
+		custConf.DbPath = "./alert.db"
+	}
+	if custConf.ServerPort == "" {
+		custConf.ServerPort = "8001"
 	}
 	fmt.Println(custConf.String())
 
@@ -41,12 +37,6 @@ func main() {
 	f := newLogFile(custConf.LogPath)
 	defer f.Close()
 
-	app.Logger().AddOutput(newLogFile(custConf.LogPath))
-
-	app.StaticWeb("/static", "./static")
-	app.RegisterView(iris.HTML("./views", ".html").Layout("layout/layout.html").
-		Delims("<<", ">>"))
-
 	// Open DB
 	daoDb, dbErr := dao.NewDao(custConf.DbPath)
 	if dbErr != nil {
@@ -54,12 +44,18 @@ func main() {
 	}
 	defer daoDb.Db.Close()
 
+	app.Logger().AddOutput(newLogFile(custConf.LogPath))
+
+	app.StaticWeb("/static", "./static")
+	app.RegisterView(iris.HTML("./views", ".html").Layout("layout/layout.html").
+		Delims("<<", ">>").Binary(Asset, AssetNames))
+
 	alertMail := mail.NewMail(custConf.MailUser, custConf.MailPasword, custConf.MailHost, custConf.MailHtmlTplUrl)
 	apiDao := dao.NewApiDao(daoDb)
 	ruleDao := dao.NewRuleDao(daoDb)
 	noteDao := dao.NewNoteDao(daoDb)
 	globalmailDao := dao.NewGlobalMailDao(daoDb)
-	apiAlert := alert.NewAlert(apiDao, ruleDao, noteDao, globalmailDao, alertMail, conf.Other["EsUrl"].(string))
+	apiAlert := alert.NewAlert(apiDao, ruleDao, noteDao, globalmailDao, alertMail, custConf.EsUrl)
 	app.Controller("/apis", new(controller.ApiController), apiDao, ruleDao, apiAlert)
 	app.Controller("/rule", new(controller.RuleController), ruleDao)
 	app.Controller("/notes", new(controller.NoteController), noteDao)
@@ -78,8 +74,7 @@ func main() {
 		ctx.View("globalmail/globalmails.html")
 	})
 
-	app.Configure(iris.WithConfiguration(conf))
-	if err := app.Run(iris.Addr(":8080"), iris.WithoutBanner); err != nil {
+	if err := app.Run(iris.Addr(":" + custConf.ServerPort), iris.WithoutBanner); err != nil {
 		if err != iris.ErrServerClosed {
 			app.Logger().Warn("Shutdown with error: " + err.Error())
 		}
@@ -121,6 +116,7 @@ func config(args []string) customizeConfig {
 }
 
 type customizeConfig struct {
+	ServerPort string `yaml:"ServerPort"`
 	EsUrl string `yaml:"EsUrl"`
 	LogPath string `yaml:"LogPath"`
 	DbPath string `yaml:"DbPath"`
@@ -132,6 +128,7 @@ type customizeConfig struct {
 
 func (c *customizeConfig) String() string {
 	str := fmt.Sprintf("print configuration info: \n")
+	str = str + fmt.Sprintf("ServerPort: %s \n", c.ServerPort)
 	str = str + fmt.Sprintf("EsUrl: %s \n", c.EsUrl)
 	str = str + fmt.Sprintf("LogPath: %s \n", c.LogPath)
 	str = str + fmt.Sprintf("DbPath: %s \n", c.DbPath)

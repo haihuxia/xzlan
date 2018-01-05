@@ -1,3 +1,7 @@
+# go
+/bindata.go
+/xzlan
+
 # folder
 target/
 
