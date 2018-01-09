@@ -2,10 +2,10 @@ package controller
 
 import (
 	"xzlan/dao"
-	"fmt"
 	"xzlan/alert"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/mvc"
+	"log"
 )
 
 type ApiController struct {
@@ -32,7 +32,7 @@ func (a *ApiController) Get() iris.Map {
 func (a *ApiController) GetBy(id string) mvc.View {
 	v, err := a.ApiDao.Get(id)
 	if err != nil {
-		fmt.Printf("apis/id error, %s", err)
+		log.Printf("apis/id error, %s", err)
 	}
 	return mvc.View{Name: "api/edit.html", Layout: iris.NoLayout, Data: v}
 }
@@ -102,7 +102,7 @@ func (a *ApiController) PostRunBy(id string) iris.Map {
 	if rule.Type == "" {
 		return iris.Map{"code": iris.StatusInternalServerError, "msg": "告警规则未配置"}
 	}
-	go a.ApiAlert.RunJob(api, rule)
+	go a.ApiAlert.RunJob(id)
 	api.Status = "running"
 	err = a.ApiDao.Update(api)
 	if err != nil {

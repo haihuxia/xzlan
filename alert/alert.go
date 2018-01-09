@@ -4,12 +4,13 @@ import (
 	"xzlan/dao"
 	"xzlan/mail"
 	"gopkg.in/olivere/elastic.v5"
-	"fmt"
 	"context"
 	"time"
 	"strconv"
 	"strings"
 	"encoding/json"
+	"log"
+	"errors"
 )
 
 var chanMap = make(map[string]chan bool)
@@ -21,6 +22,7 @@ type Alert struct {
 	GlobalMailDao *dao.GlobalMailDao
 	Mail          *mail.Mail
 	EsUrl         string
+	EsIndex       string
 }
 
 type Message struct {
@@ -28,8 +30,9 @@ type Message struct {
 }
 
 func NewAlert(apiDao *dao.ApiDao, ruleDao *dao.RuleDao, noteDao *dao.NoteDao, globalMailDao *dao.GlobalMailDao,
-	mail *mail.Mail, esUrl string) *Alert {
-	return &Alert{apiDao, ruleDao, noteDao, globalMailDao, mail, esUrl}
+	mail *mail.Mail, esUrl string, esIndex string) *Alert {
+	return &Alert{apiDao, ruleDao, noteDao, globalMailDao, mail,
+		esUrl, esIndex}
 }
 
 func (a *Alert) Start() error {
@@ -42,7 +45,10 @@ func (a *Alert) Start() error {
 		if err != nil {
 			return err
 		}
-		a.RunJob(apis[i], rule)
+		if rule.Type == "" {
+			return errors.New("no config alert rule")
+		}
+		a.RunJob(apis[i].Id)
 	}
 	return nil
 }
@@ -54,15 +60,16 @@ func (a *Alert) Stop(id string) error {
 	return nil
 }
 
-func (a *Alert) RunJob(api dao.Api, rule dao.Rule) {
+func (a *Alert) RunJob(id string) {
 	tick := time.Tick(60e9)
 	stop := make(chan bool)
-	chanMap[api.Id] = stop
+	chanMap[id] = stop
 	var flag = false
 	for {
 		select {
 		case <-tick:
-			a.job(api, rule)
+			// 不能传对象，否则无法加载最新修改的值
+			a.job(id)
 		case <-stop:
 			flag = true
 		}
@@ -70,10 +77,19 @@ func (a *Alert) RunJob(api dao.Api, rule dao.Rule) {
 			break
 		}
 	}
-	fmt.Println("Stop !")
 }
 
-func (a *Alert) job(api dao.Api, rule dao.Rule) {
+func (a *Alert) job(id string) {
+	api, err := a.ApiDao.Get(id)
+	if err != nil {
+		log.Printf("job ApiDao.Get error %s \n", err)
+		return
+	}
+	rule, err := a.RuleDao.Get(id)
+	if err != nil {
+		log.Printf("job RuleDao.Get error %s \n", err)
+		return
+	}
 	if rule.Type != "min" {
 		return
 	}
@@ -84,17 +100,16 @@ func (a *Alert) job(api dao.Api, rule dao.Rule) {
 	if rule.Type == "min" {
 		query = query.Filter(elastic.NewRangeQuery("elapsed").Gte(rule.Min))
 		query = query.Filter(elastic.NewRangeQuery("@timestamp").Gte("now-" + rule.Time + "m").Lt("now"))
-
 	}
 	t := time.Now().Format("2006.01.02")
-	result, err := client.Search("logstash-" + t).Query(query).Do(context.Background())
+	result, err := client.Search(a.EsIndex + t).Query(query).Do(context.Background())
 	if err != nil {
-		fmt.Printf("elk query error %s \n", err)
+		log.Printf("elk query error %s \n", err)
 		return
 	}
 	c, err := strconv.ParseInt(rule.Count, 10, 64)
 	if err != nil {
-		fmt.Printf("parseInt error %s \n", err)
+		log.Printf("parseInt error %s \n", err)
 		return
 	}
 	if result.Hits.TotalHits >= c {
@@ -103,22 +118,21 @@ func (a *Alert) job(api dao.Api, rule dao.Rule) {
 			strconv.FormatInt(result.Hits.TotalHits, 10) + " 次 >= 限制 " + rule.Count + " 次"
 		notifyTime, err := a.NoteDao.Add(note, api.Id)
 		if err != nil {
-			fmt.Printf("add note error %s \n", err)
+			log.Printf("add note error %s \n", err)
 		}
-		fmt.Printf("%s %s %d hit: %d 【命中】 \n", api.Name, api.Method, c, result.Hits.TotalHits)
-
+		log.Printf("%s %s %d hit: %d 【命中】 \n", api.Name, api.Method, c, result.Hits.TotalHits)
 		// 判断是否需要发送邮件
 		if rule.Delay != "" && api.NotifyTime != "" {
 			notifyTime, err := time.Parse("2006-01-02 15:04:05", api.NotifyTime)
 			if err != nil {
-				fmt.Printf("time.Parse error %s \n", err)
+				log.Printf("time.Parse error %s \n", err)
 			}
 			delayTime, err := dao.DelayToTime(rule.Delay, notifyTime)
 			if err != nil {
-				fmt.Printf("time.Parse error %s \n", err)
+				log.Printf("time.Parse error %s \n", err)
 			}
 			if delayTime.After(time.Now()) {
-				a.NoteDao.Add(note+", 下次通知时间："+delayTime.Format("2006-01-02 15:04:05"), api.Id)
+				a.NoteDao.Add(note+", 下次通知时间：" + delayTime.Format("2006-01-02 15:04:05"), api.Id)
 				return
 			}
 		}
@@ -126,12 +140,17 @@ func (a *Alert) job(api dao.Api, rule dao.Rule) {
 		// 发送邮件
 		body := "接口：<b>" + api.Name + "</b><br/>方法：<b>" + api.Method + "</b><br/>耗时匹配次数：<b>" +
 			strconv.FormatInt(result.Hits.TotalHits, 10) + "</b>（告警规则：大于 " + rule.Min + "ms, " +
-			rule.Count + "次）<br/><br/>原始日志："
-		for i := 0; i < len(result.Hits.Hits); i++ {
+			rule.Count + "次）<br/><br/>截取日志片段："
+		// 最多截取 5 条原始日志
+		l := len(result.Hits.Hits)
+		if l > 5 {
+			l = 5
+		}
+		for i := 0; i < l; i++ {
 			b, _ := result.Hits.Hits[i].Source.MarshalJSON()
 			var m Message
 			json.Unmarshal(b, &m)
-			body = body + "<br/>" + m.Message
+			body = body + "<br/>" + m.Message + "<br/>"
 		}
 		tos := strings.Split(rule.Mails, ";")
 		for i := 0; i < len(tos); i++ {
@@ -140,21 +159,21 @@ func (a *Alert) job(api dao.Api, rule dao.Rule) {
 			}
 			err = a.Mail.Send(tos[i], body)
 			if err == nil {
-				fmt.Printf("邮件发送成功 %s \n", tos[i])
+				log.Printf("email send [suc] %s \n", tos[i])
 			} else {
-				fmt.Printf("error: %s \n", err)
+				log.Printf("email send [falil] %s err: %s \n", tos[i], err)
 			}
 		}
 		globalMails, err := a.GlobalMailDao.GetAll()
 		if err != nil {
-			fmt.Printf("alert GlobalMailDao.GetAll error %s \n", err)
+			log.Printf("alert GlobalMailDao.GetAll error %s \n", err)
 		}
 		for i := 0; i < len(globalMails); i++ {
 			err = a.Mail.Send(globalMails[i].Mail, body)
 			if err == nil {
-				fmt.Printf("邮件发送成功 %s \n", globalMails[i].Mail)
+				log.Printf("email send [suc] %s \n", globalMails[i].Mail)
 			} else {
-				fmt.Printf("error: %s \n", err)
+				log.Printf("email send [falil] %s err: %s \n", globalMails[i].Mail, err)
 			}
 		}
 		// 修改状态，告警已通知
@@ -162,6 +181,6 @@ func (a *Alert) job(api dao.Api, rule dao.Rule) {
 		api.NotifyTime = notifyTime
 		a.ApiDao.Update(api)
 	} else {
-		fmt.Printf("%s %s %d hit: %d 【未命中】 \n", api.Name, api.Method, c, result.Hits.TotalHits)
+		log.Printf("%s %s %d hit: %d 【未命中】 \n", api.Name, api.Method, c, result.Hits.TotalHits)
 	}
 }

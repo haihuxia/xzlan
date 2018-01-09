@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"bytes"
 	"html/template"
-	"fmt"
+	"log"
 )
 
 type Mail struct {
@@ -40,14 +40,14 @@ func (m *Mail) text(to string, content string) error {
 func (m *Mail) html(to string, content string) error {
 	t, err := template.ParseFiles(m.htmlTplUrl)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("template.ParseFiles error %s \n", err)
 	}
 	var body bytes.Buffer
 	body.Write([]byte("To: " + to + "\r\nFrom: 告警<" + m.user +
 		">\r\nSubject: 【告警】接口耗时超限\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"))
 	err = t.ExecuteTemplate(&body, t.Name(), template.HTML(content))
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("ExecuteTemplate error %s \n", err)
 	}
 	sendTo := strings.Split(to, ";")
 	auth := smtp.PlainAuth("", m.user, m.password, m.host)

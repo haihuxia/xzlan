@@ -20,12 +20,13 @@ Configuration `./conf/app.yml`
 ```
 Other: {
   ServerProt: "" # default 8001
-  EsUrl: "", # elasticsearch url, e.g. http://localhost:9200 
+  EsUrl: "", # elasticsearch url, e.g. http://localhost:9200
+  EsIndex: "", # elasticsearch logstash index, e.g. "logstash-", no date
   LogPath: "", 
   DbPath: "", # boltdb db filepath default ./alert.db, e.g. /data/db/app.db
   MailHost: "", # email host, e.g. smtp.163.com
   MailUser: "", # email username
-  MailPasword: "" # email password
+  MailPassword: "" # email password
   MailHtmlTplUrl: "" # email content template, e.g. /data/template.html
 }
 ```
