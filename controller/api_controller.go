@@ -77,6 +77,7 @@ func (a *ApiController) PostEdit() iris.Map {
 // 删除
 // delete /apis/{id}
 func (a *ApiController) DeleteBy(id string) iris.Map {
+	a.ApiAlert.Stop(id)
 	err := a.ApiDao.Delete(id)
 	if err != nil {
 		return iris.Map{"code": iris.StatusInternalServerError, "msg": err.Error()}

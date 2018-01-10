@@ -57,5 +57,5 @@ func (a *ApiDao) Update(api Api) error {
 }
 
 func (a *ApiDao) Delete(id string) error {
-	return a.dao.Delete(ApiTable, id)
+	return a.dao.DeleteApi(id)
 }

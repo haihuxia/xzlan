@@ -53,11 +53,10 @@ func (a *Alert) Start() error {
 	return nil
 }
 
-func (a *Alert) Stop(id string) error {
+func (a *Alert) Stop(id string) {
 	if v, ok := chanMap[id]; ok {
 		v <- true
 	}
-	return nil
 }
 
 func (a *Alert) RunJob(id string) {

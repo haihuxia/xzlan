@@ -94,6 +94,29 @@ func (dao *Dao) Delete(table string, key string) error {
 	})
 }
 
+func (dao *Dao) DeleteApi(id string) error {
+	tx, err := dao.Db.Begin(true)
+	if err != nil {
+		return err
+	}
+	err = tx.Bucket([]byte(NoteTable)).Delete([]byte(id))
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = tx.Bucket([]byte(RuleTable)).Delete([]byte(id))
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = tx.Bucket([]byte(ApiTable)).Delete([]byte(id))
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit()
+}
+
 func (dao *Dao) Get(table string, key string) ([]byte, error) {
 	var v []byte
 	err := dao.Db.View(func(tx *bolt.Tx) error {
