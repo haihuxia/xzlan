@@ -6,9 +6,10 @@ import (
 	"strconv"
 )
 
+// RuleTable 表名
 const RuleTable = "rule"
 
-// 告警规则
+// Rule 告警规则
 // Api.Id 与 rule 表的 key 一致
 // 以 Api.Id 为 key
 type Rule struct {
@@ -22,14 +23,17 @@ type Rule struct {
 	Mails string `json:"mails"`
 }
 
+// RuleDao 数据操作
 type RuleDao struct {
 	dao *Dao
 }
 
+// NewRuleDao 构造函数
 func NewRuleDao(dao *Dao) *RuleDao {
 	return &RuleDao{dao}
 }
 
+// Get 查询
 func (r *RuleDao) Get(id string) (rule Rule, err error) {
 	v, err := r.dao.Get(RuleTable, id)
 	if err != nil {
@@ -39,10 +43,12 @@ func (r *RuleDao) Get(id string) (rule Rule, err error) {
 	return
 }
 
+// Add 新增
 func (r *RuleDao) Add(id string, rule Rule) error {
 	return r.dao.PutByStruct(RuleTable, id, rule)
 }
 
+// DelayToTime 计算延时
 func DelayToTime(delay string, t time.Time) (time.Time, error) {
 	if delay == "" {
 		return t, nil

@@ -9,20 +9,23 @@ import (
 	"log"
 )
 
+// Mail 邮箱
 type Mail struct {
 	user string
 	password string
 	host string
 	port int64
-	htmlTplUrl string
+	htmlTplURL string
 }
 
-func NewMail(user, password, host, htmlTplUrl string) *Mail {
-	return &Mail{user, password, host, 25, htmlTplUrl}
+// NewMail 构造函数
+func NewMail(user, password, host, htmlTplURL string) *Mail {
+	return &Mail{user, password, host, 25, htmlTplURL}
 }
 
+// Send 发送邮件
 func (m *Mail) Send(to string, content string) error {
-	if m.htmlTplUrl != "" {
+	if m.htmlTplURL != "" {
 		return m.html(to, content)
 	}
 	return m.text(to, content)
@@ -38,7 +41,7 @@ func (m *Mail) text(to string, content string) error {
 }
 
 func (m *Mail) html(to string, content string) error {
-	t, err := template.ParseFiles(m.htmlTplUrl)
+	t, err := template.ParseFiles(m.htmlTplURL)
 	if err != nil {
 		log.Printf("template.ParseFiles error %s \n", err)
 	}

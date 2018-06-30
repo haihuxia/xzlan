@@ -6,13 +6,13 @@ import (
 	"github.com/kataras/iris"
 )
 
+// NoteController 通知记录
 type NoteController struct {
 	mvc.C
 	NoteDao *dao.NoteDao
 }
 
-// 查询
-// get /notes/
+// Get get /notes/
 func (n *NoteController) Get() iris.Map {
 	notes, err := n.NoteDao.GetAll()
 	if err != nil {

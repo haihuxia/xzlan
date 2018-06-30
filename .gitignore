@@ -1,9 +1,5 @@
 # go
 /bindata.go
-/xzlan
-
-# folder
-target/
 
 # fixed file
 .log
@@ -11,5 +7,6 @@ target/
 *.iml
 */*.log
 
-target/
-.idea/
+xzlan
+.idea
+.vscode

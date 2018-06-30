@@ -50,13 +50,13 @@ func main() {
 	app.RegisterView(iris.HTML("./views", ".html").Layout("layout/layout.html").
 		Delims("<<", ">>").Binary(Asset, AssetNames))
 
-	alertMail := mail.NewMail(custConf.MailUser, custConf.MailPassword, custConf.MailHost, custConf.MailHtmlTplUrl)
-	apiDao := dao.NewApiDao(daoDb)
+	alertMail := mail.NewMail(custConf.MailUser, custConf.MailPassword, custConf.MailHost, custConf.MailHTMLTplURL)
+	apiDao := dao.NewAPIDao(daoDb)
 	ruleDao := dao.NewRuleDao(daoDb)
 	noteDao := dao.NewNoteDao(daoDb)
 	globalmailDao := dao.NewGlobalMailDao(daoDb)
-	apiAlert := alert.NewAlert(apiDao, ruleDao, noteDao, globalmailDao, alertMail, custConf.EsUrl, custConf.EsIndex)
-	app.Controller("/apis", new(controller.ApiController), apiDao, ruleDao, apiAlert)
+	apiAlert := alert.NewAlert(apiDao, ruleDao, noteDao, globalmailDao, alertMail, custConf.EsURL, custConf.EsIndex)
+	app.Controller("/apis", new(controller.APIController), apiDao, ruleDao, apiAlert)
 	app.Controller("/rule", new(controller.RuleController), ruleDao, apiDao)
 	app.Controller("/notes", new(controller.NoteController), noteDao)
 	app.Controller("/globalmails", new(controller.GlobalMailController), globalmailDao)
@@ -117,23 +117,23 @@ func config(args []string) customizeConfig {
 
 type customizeConfig struct {
 	ServerPort string `yaml:"ServerPort"`
-	EsUrl string `yaml:"EsUrl"`
+	EsURL string `yaml:"EsUrl"`
 	EsIndex string `yaml:"EsIndex"`
 	LogPath string `yaml:"LogPath"`
 	DbPath string `yaml:"DbPath"`
 	MailHost string `yaml:"MailHost"`
 	MailUser string `yaml:"MailUser"`
 	MailPassword string `yaml:"MailPassword"`
-	MailHtmlTplUrl string `yaml:"MailHtmlTplUrl"`
+	MailHTMLTplURL string `yaml:"MailHTMLTplURL"`
 }
 
 func (c *customizeConfig) String() string {
 	str := fmt.Sprintf("print configuration info: \n")
 	str = str + fmt.Sprintf("ServerPort: %s \n", c.ServerPort)
-	str = str + fmt.Sprintf("EsUrl: %s \n", c.EsUrl)
+	str = str + fmt.Sprintf("EsURL: %s \n", c.EsURL)
 	str = str + fmt.Sprintf("LogPath: %s \n", c.LogPath)
 	str = str + fmt.Sprintf("DbPath: %s \n", c.DbPath)
-	str = str + fmt.Sprintf("MailHtmlTplUrl: %s \n", c.MailHtmlTplUrl)
+	str = str + fmt.Sprintf("MailHTMLTplURL: %s \n", c.MailHTMLTplURL)
 	str = str + fmt.Sprintf("load configuration done \n")
 	return str
 }

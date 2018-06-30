@@ -9,17 +9,19 @@ import (
 	"bytes"
 )
 
+// Dao 数据操作实现
 type Dao struct {
 	Db *bolt.DB
 }
 
+// NewDao 构造函数
 func NewDao(dbPath string) (*Dao, error) {
 	boltDb, err := bolt.Open(dbPath, 0600, &bolt.Options{Timeout: 2 * time.Second})
 	if err != nil {
 		return &Dao{}, err
 	}
 	err = boltDb.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(ApiTable))
+		_, err := tx.CreateBucketIfNotExists([]byte(APITable))
 		if err != nil {
 			return err
 		}
@@ -40,6 +42,7 @@ func NewDao(dbPath string) (*Dao, error) {
 	return &Dao{boltDb}, err
 }
 
+// CreateTable 创建表
 func (dao *Dao) CreateTable(table string) error {
 	return dao.Db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucket([]byte(table))
@@ -47,12 +50,14 @@ func (dao *Dao) CreateTable(table string) error {
 	})
 }
 
+// DeleteTable 删除表
 func (dao *Dao) DeleteTable(table string) error {
 	return dao.Db.Update(func(tx *bolt.Tx) error {
 		return tx.DeleteBucket([]byte(table))
 	})
 }
 
+// PutByByte 存储数据
 func (dao *Dao) PutByByte(table string, key string, value []byte) error {
 	return dao.Db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(table))
@@ -61,10 +66,11 @@ func (dao *Dao) PutByByte(table string, key string, value []byte) error {
 	})
 }
 
+// GetSeq 获取序列
 func (dao *Dao) GetSeq(table string) (string, error) {
 	var seq string
 	err := dao.Db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(ApiTable))
+		b := tx.Bucket([]byte(APITable))
 		v, err := b.NextSequence()
 		if err != nil {
 			return err
@@ -75,10 +81,12 @@ func (dao *Dao) GetSeq(table string) (string, error) {
 	return seq, err
 }
 
-func (dao *Dao) UpdateApi(api Api) error {
-	return dao.PutByStruct(ApiTable, api.Id, api)
+// UpdateAPI 更新 api 数据
+func (dao *Dao) UpdateAPI(api API) error {
+	return dao.PutByStruct(APITable, api.ID, api)
 }
 
+// PutByStruct 存储数据
 func (dao *Dao) PutByStruct(table string, key string, value interface{}) error {
 	v, e := json.Marshal(value)
 	if e != nil {
@@ -87,6 +95,7 @@ func (dao *Dao) PutByStruct(table string, key string, value interface{}) error {
 	return dao.PutByByte(table, key, v)
 }
 
+// Delete 删除
 func (dao *Dao) Delete(table string, key string) error {
 	return dao.Db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(table))
@@ -94,7 +103,8 @@ func (dao *Dao) Delete(table string, key string) error {
 	})
 }
 
-func (dao *Dao) DeleteApi(id string) error {
+// DeleteAPI 删除 api 数据
+func (dao *Dao) DeleteAPI(id string) error {
 	tx, err := dao.Db.Begin(true)
 	if err != nil {
 		return err
@@ -109,7 +119,7 @@ func (dao *Dao) DeleteApi(id string) error {
 		tx.Rollback()
 		return err
 	}
-	err = tx.Bucket([]byte(ApiTable)).Delete([]byte(id))
+	err = tx.Bucket([]byte(APITable)).Delete([]byte(id))
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -117,6 +127,7 @@ func (dao *Dao) DeleteApi(id string) error {
 	return tx.Commit()
 }
 
+// Get 查询
 func (dao *Dao) Get(table string, key string) ([]byte, error) {
 	var v []byte
 	err := dao.Db.View(func(tx *bolt.Tx) error {
@@ -127,10 +138,11 @@ func (dao *Dao) Get(table string, key string) ([]byte, error) {
 	return v, err
 }
 
-func (dao *Dao) GetApis(name string, method string) (apis []Api, err error) {
+// GetAPIs 查询 api 数据
+func (dao *Dao) GetAPIs(name string, method string) (apis []API, err error) {
 	err = dao.Db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(ApiTable))
-		var api Api
+		b := tx.Bucket([]byte(APITable))
+		var api API
 		return b.ForEach(func(k, v []byte) error {
 			if e := json.Unmarshal(v, &api); e != nil {
 				return e
@@ -155,10 +167,11 @@ func (dao *Dao) GetApis(name string, method string) (apis []Api, err error) {
 	return
 }
 
-func (dao *Dao) GetApisAll() (apis []Api, err error) {
+// GetAPIsAll 查询所有 api 数据
+func (dao *Dao) GetAPIsAll() (apis []API, err error) {
 	err = dao.Db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(ApiTable))
-		var api Api
+		b := tx.Bucket([]byte(APITable))
+		var api API
 		return b.ForEach(func(k, v []byte) error {
 			if e := json.Unmarshal(v, &api); e != nil {
 				return e
@@ -170,6 +183,7 @@ func (dao *Dao) GetApisAll() (apis []Api, err error) {
 	return
 }
 
+// GetNotesAll 查询所有记录
 func (dao *Dao) GetNotesAll() (notes []Note, err error) {
 	err = dao.Db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(NoteTable))
@@ -185,6 +199,7 @@ func (dao *Dao) GetNotesAll() (notes []Note, err error) {
 	return
 }
 
+// GetGlobalMailsByPrefix 根据前缀查询全局邮箱
 func (dao *Dao) GetGlobalMailsByPrefix(table, prefix []byte) (values []GlobalMail, err error) {
 	err = dao.Db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket(table).Cursor()
@@ -197,6 +212,7 @@ func (dao *Dao) GetGlobalMailsByPrefix(table, prefix []byte) (values []GlobalMai
 	return
 }
 
+// GetGlobalMailsAll 查询所有全局邮箱
 func (dao *Dao) GetGlobalMailsAll(table string) (values []GlobalMail, err error) {
 	err = dao.Db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(table))

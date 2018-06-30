@@ -15,7 +15,7 @@ xzlan depends on these
 
 ## Getting Started
 
-Configuration `./conf/app.yml`
+Create a configuration file `./conf/app.yml`
 
 ```
 Other: {

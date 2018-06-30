@@ -6,13 +6,13 @@ import (
 	"github.com/kataras/iris"
 )
 
+// GlobalMailController 全局邮箱
 type GlobalMailController struct {
 	mvc.C
 	GlobalMailDao *dao.GlobalMailDao
 }
 
-// 查询
-// get /globalmails
+// Get get /globalmails
 func (g *GlobalMailController) Get() iris.Map {
 	var mails []dao.GlobalMail
 	var err error
@@ -28,14 +28,12 @@ func (g *GlobalMailController) Get() iris.Map {
 	return iris.Map{"code": 0, "msg": "", "count": len(mails), "data": mails}
 }
 
-// 新增
-// get /globalmails/add
+// GetAdd get /globalmails/add
 func (g *GlobalMailController) GetAdd() mvc.View {
 	return mvc.View{Name: "globalmail/add.html", Layout: iris.NoLayout}
 }
 
-// 新增
-// post /globalmails/add
+// PostAdd post /globalmails/add
 func (g *GlobalMailController) PostAdd() iris.Map {
 	m := &dao.GlobalMail{}
 	err := g.Ctx.ReadJSON(&m)
@@ -49,8 +47,7 @@ func (g *GlobalMailController) PostAdd() iris.Map {
 	return iris.Map{"code": iris.StatusOK, "msg": "OK"}
 }
 
-// 删除
-// delete /golbalmails/{mail}
+// DeleteBy delete /golbalmails/{mail}
 func (g *GlobalMailController) DeleteBy(mail string) iris.Map {
 	err := g.GlobalMailDao.Delete(mail)
 	if err != nil {

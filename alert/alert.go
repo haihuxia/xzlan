@@ -15,50 +15,56 @@ import (
 
 var chanMap = make(map[string]chan bool)
 
+// Alert 告警
 type Alert struct {
-	ApiDao        *dao.ApiDao
+	APIDao        *dao.APIDao
 	RuleDao       *dao.RuleDao
 	NoteDao       *dao.NoteDao
 	GlobalMailDao *dao.GlobalMailDao
 	Mail          *mail.Mail
-	EsUrl         string
+	EsURL         string
 	EsIndex       string
 }
 
+// Message 消息
 type Message struct {
 	Message string `json:"message"`
 }
 
-func NewAlert(apiDao *dao.ApiDao, ruleDao *dao.RuleDao, noteDao *dao.NoteDao, globalMailDao *dao.GlobalMailDao,
-	mail *mail.Mail, esUrl string, esIndex string) *Alert {
+// NewAlert 构造函数
+func NewAlert(apiDao *dao.APIDao, ruleDao *dao.RuleDao, noteDao *dao.NoteDao, globalMailDao *dao.GlobalMailDao,
+	mail *mail.Mail, esURL string, esIndex string) *Alert {
 	return &Alert{apiDao, ruleDao, noteDao, globalMailDao, mail,
-		esUrl, esIndex}
+		esURL, esIndex}
 }
 
+// Start 启动监控
 func (a *Alert) Start() error {
-	apis, err := a.ApiDao.GetAll()
+	apis, err := a.APIDao.GetAll()
 	if err != nil {
 		return err
 	}
 	for i := range apis {
-		rule, err := a.RuleDao.Get(apis[i].Id)
+		rule, err := a.RuleDao.Get(apis[i].ID)
 		if err != nil {
 			return err
 		}
 		if rule.Type == "" {
 			return errors.New("no config alert rule")
 		}
-		a.RunJob(apis[i].Id)
+		a.RunJob(apis[i].ID)
 	}
 	return nil
 }
 
+// Stop 停止
 func (a *Alert) Stop(id string) {
 	if v, ok := chanMap[id]; ok {
 		v <- true
 	}
 }
 
+// RunJob 运行任务
 func (a *Alert) RunJob(id string) {
 	tick := time.Tick(60e9)
 	stop := make(chan bool)
@@ -79,7 +85,7 @@ func (a *Alert) RunJob(id string) {
 }
 
 func (a *Alert) job(id string) {
-	api, err := a.ApiDao.Get(id)
+	api, err := a.APIDao.Get(id)
 	if err != nil {
 		log.Printf("job ApiDao.Get error %s \n", err)
 		return
@@ -92,7 +98,7 @@ func (a *Alert) job(id string) {
 	if rule.Type != "min" {
 		return
 	}
-	client, err := elastic.NewClient(elastic.SetURL(a.EsUrl))
+	client, err := elastic.NewClient(elastic.SetURL(a.EsURL))
 	query := elastic.NewBoolQuery()
 	query = query.Must(elastic.NewMatchPhraseQuery("interface", api.Name))
 	query = query.Must(elastic.NewMatchPhraseQuery("method", api.Method))
@@ -115,7 +121,7 @@ func (a *Alert) job(id string) {
 		// 添加告警记录
 		note := "接口：" + api.Name + "." + api.Method + "，耗时检查：实际 " +
 			strconv.FormatInt(result.Hits.TotalHits, 10) + " 次 >= 限制 " + rule.Count + " 次"
-		notifyTime, err := a.NoteDao.Add(note, api.Id)
+		notifyTime, err := a.NoteDao.Add(note, api.ID)
 		if err != nil {
 			log.Printf("add note error %s \n", err)
 		}
@@ -131,7 +137,7 @@ func (a *Alert) job(id string) {
 				log.Printf("time.Parse error %s \n", err)
 			}
 			if delayTime.After(time.Now()) {
-				a.NoteDao.Add(note+", 下次通知时间：" + delayTime.Format("2006-01-02 15:04:05"), api.Id)
+				a.NoteDao.Add(note+", 下次通知时间：" + delayTime.Format("2006-01-02 15:04:05"), api.ID)
 				return
 			}
 		}
@@ -176,9 +182,9 @@ func (a *Alert) job(id string) {
 			}
 		}
 		// 修改状态，告警已通知
-		a.NoteDao.Update(note, api.Id, "0")
+		a.NoteDao.Update(note, api.ID, "0")
 		api.NotifyTime = notifyTime
-		a.ApiDao.Update(api)
+		a.APIDao.Update(api)
 	} else {
 		log.Printf("%s %s %d hit: %d 【未命中】 \n", api.Name, api.Method, c, result.Hits.TotalHits)
 	}

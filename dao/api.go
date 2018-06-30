@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 )
 
-const ApiTable = "api"
+// APITable 表名
+const APITable = "api"
 
-// 告警接口
+// API 告警接口
 // Api.Id 与 rule 表的 key 一致
 // 以 Api.Id 为 key
-type Api struct {
-	Id string `json:"id"`
+type API struct {
+	ID string `json:"id"`
 	Name string `json:"name"`
 	Method string `json:"method"`
 	Remark string `json:"remark"`
@@ -18,25 +19,29 @@ type Api struct {
 	NotifyTime string `json:"notifyTime"`
 }
 
-type ApiDao struct {
+// APIDao 数据操作
+type APIDao struct {
 	dao *Dao
 }
 
-func NewApiDao(dao *Dao) *ApiDao {
-	return &ApiDao{dao}
+// NewAPIDao 构造函数
+func NewAPIDao(dao *Dao) *APIDao {
+	return &APIDao{dao}
 }
 
-func (a *ApiDao) Add(api Api) error {
-	seq, err := a.dao.GetSeq(ApiTable)
+// Add 新增
+func (a *APIDao) Add(api API) error {
+	seq, err := a.dao.GetSeq(APITable)
 	if err != nil {
 		return err
 	}
-	api.Id = seq
-	return a.dao.PutByStruct(ApiTable, seq, api)
+	api.ID = seq
+	return a.dao.PutByStruct(APITable, seq, api)
 }
 
-func (a *ApiDao) Get(id string) (api Api, err error) {
-	v, err := a.dao.Get(ApiTable, id)
+// Get 查询
+func (a *APIDao) Get(id string) (api API, err error) {
+	v, err := a.dao.Get(APITable, id)
 	if err != nil {
 		return api, err
 	}
@@ -44,18 +49,22 @@ func (a *ApiDao) Get(id string) (api Api, err error) {
 	return
 }
 
-func (a *ApiDao) GetBy(name string, method string) ([]Api, error) {
-	return a.dao.GetApis(name, method)
+// GetBy 查询
+func (a *APIDao) GetBy(name string, method string) ([]API, error) {
+	return a.dao.GetAPIs(name, method)
 }
 
-func (a *ApiDao) GetAll() ([]Api, error) {
-	return a.dao.GetApisAll()
+// GetAll 查询所有
+func (a *APIDao) GetAll() ([]API, error) {
+	return a.dao.GetAPIsAll()
 }
 
-func (a *ApiDao) Update(api Api) error {
-	return a.dao.PutByStruct(ApiTable, api.Id, api)
+// Update 更新
+func (a *APIDao) Update(api API) error {
+	return a.dao.PutByStruct(APITable, api.ID, api)
 }
 
-func (a *ApiDao) Delete(id string) error {
-	return a.dao.DeleteApi(id)
+// Delete 删除
+func (a *APIDao) Delete(id string) error {
+	return a.dao.DeleteAPI(id)
 }
