@@ -24,8 +24,8 @@ func TestDao_PutByStruct(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api := Api{"1", "user", "get", "查询接口", "stop", ""}
-	err = dao.PutByStruct(ApiTable, "1", api)
+	api := API{"1", "user", "get", "查询接口", "stop", ""}
+	err = dao.PutByStruct(APITable, "1", api)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -38,7 +38,7 @@ func TestDao_Delete(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = dao.Delete(ApiTable, "1")
+	err = dao.Delete(RuleTable, "1")
 	if err != nil {
 		t.Fatal(err)
 	}

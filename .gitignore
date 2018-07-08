@@ -1,5 +1,5 @@
 # go
-/bindata.go
+bindata.go
 
 # fixed file
 .log

@@ -46,9 +46,13 @@ func main() {
 
 	app.Logger().AddOutput(newLogFile(custConf.LogPath))
 
-	app.StaticEmbedded("/static", "./static", Asset, AssetNames)
+	//app.StaticEmbedded("/static", "./static", Asset, AssetNames)
+	//app.RegisterView(iris.HTML("./views", ".html").Layout("layout/layout.html").
+	//	Delims("<<", ">>").Binary(Asset, AssetNames))
+
+	app.StaticWeb("/static", "./static")
 	app.RegisterView(iris.HTML("./views", ".html").Layout("layout/layout.html").
-		Delims("<<", ">>").Binary(Asset, AssetNames))
+		Delims("<<", ">>"))
 
 	alertMail := mail.NewMail(custConf.MailUser, custConf.MailPassword, custConf.MailHost, custConf.MailHTMLTplURL)
 	apiDao := dao.NewAPIDao(daoDb)

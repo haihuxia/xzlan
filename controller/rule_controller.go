@@ -39,9 +39,7 @@ func (r *RuleController) PostAdd() iris.Map {
 	if err != nil {
 		return iris.Map{"code": iris.StatusInternalServerError, "msg": err.Error()}
 	}
-	var daoRule = dao.Rule{rule.Type, rule.Max, rule.Min, rule.Val, rule.Time,
-		rule.Count, rule.Delay, rule.Mails}
-	err = r.RuleDao.Add(rule.ID, daoRule)
+	err = r.RuleDao.Add(rule.ID, rule.Rule)
 	if err != nil {
 		return iris.Map{"code": iris.StatusInternalServerError, "msg": err.Error()}
 	}
