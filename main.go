@@ -46,13 +46,13 @@ func main() {
 
 	app.Logger().AddOutput(newLogFile(custConf.LogPath))
 
-	//app.StaticEmbedded("/static", "./static", Asset, AssetNames)
-	//app.RegisterView(iris.HTML("./views", ".html").Layout("layout/layout.html").
-	//	Delims("<<", ">>").Binary(Asset, AssetNames))
-
-	app.StaticWeb("/static", "./static")
+	app.StaticEmbedded("/static", "./static", Asset, AssetNames)
 	app.RegisterView(iris.HTML("./views", ".html").Layout("layout/layout.html").
-		Delims("<<", ">>"))
+		Delims("<<", ">>").Binary(Asset, AssetNames))
+
+	//app.StaticWeb("/static", "./static")
+	//app.RegisterView(iris.HTML("./views", ".html").Layout("layout/layout.html").
+	//	Delims("<<", ">>"))
 
 	alertMail := mail.NewMail(custConf.MailUser, custConf.MailPassword, custConf.MailHost, custConf.MailHTMLTplURL)
 	apiDao := dao.NewAPIDao(daoDb)
@@ -121,7 +121,7 @@ func config(args []string) customizeConfig {
 
 type customizeConfig struct {
 	ServerPort string `yaml:"ServerPort"`
-	EsURL string `yaml:"EsUrl"`
+	EsURL string `yaml:"EsURL"`
 	EsIndex string `yaml:"EsIndex"`
 	LogPath string `yaml:"LogPath"`
 	DbPath string `yaml:"DbPath"`
