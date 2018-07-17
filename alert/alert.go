@@ -103,7 +103,7 @@ func (a *Alert) job(id string) {
 	query = query.Must(elastic.NewMatchPhraseQuery("interface", api.Name))
 	query = query.Must(elastic.NewMatchPhraseQuery("method", api.Method))
 	if rule.Type == "min" {
-		query = query.Filter(elastic.NewRangeQuery("elapsed").Gte(rule.Min))
+		query = query.Filter(elastic.NewRangeQuery("elapsed").Gt(rule.Min))
 		query = query.Filter(elastic.NewRangeQuery("@timestamp").Gte("now-" + rule.Time + "m").Lt("now"))
 	}
 	t := time.Now().Format("2006.01.02")
