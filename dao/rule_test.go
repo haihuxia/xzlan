@@ -1,8 +1,8 @@
 package dao
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestRuleDao_Get(t *testing.T) {

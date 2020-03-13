@@ -1,14 +1,13 @@
 package controller
 
 import (
+	"github.com/kataras/iris/v12"
 	"xzlan/dao"
-	"github.com/kataras/iris/mvc"
-	"github.com/kataras/iris"
 )
 
 // NoteController 通知记录
 type NoteController struct {
-	mvc.C
+	Ctx iris.Context
 	NoteDao *dao.NoteDao
 }
 

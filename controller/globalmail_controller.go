@@ -1,14 +1,14 @@
 package controller
 
 import (
-	"github.com/kataras/iris/mvc"
+	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/mvc"
 	"xzlan/dao"
-	"github.com/kataras/iris"
 )
 
 // GlobalMailController 全局邮箱
 type GlobalMailController struct {
-	mvc.C
+	Ctx iris.Context
 	GlobalMailDao *dao.GlobalMailDao
 }
 

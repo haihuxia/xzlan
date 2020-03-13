@@ -1,16 +1,16 @@
 package alert
 
 import (
-	"xzlan/dao"
-	"xzlan/mail"
-	"gopkg.in/olivere/elastic.v5"
 	"context"
-	"time"
+	"encoding/json"
+	"errors"
+	"gopkg.in/olivere/elastic.v5"
+	"log"
 	"strconv"
 	"strings"
-	"encoding/json"
-	"log"
-	"errors"
+	"time"
+	"xzlan/dao"
+	"xzlan/mail"
 )
 
 var chanMap = make(map[string]chan bool)

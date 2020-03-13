@@ -1,16 +1,16 @@
 package controller
 
 import (
-	"xzlan/dao"
-	"xzlan/alert"
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/mvc"
+	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/mvc"
 	"log"
+	"xzlan/alert"
+	"xzlan/dao"
 )
 
 // APIController 接口对象
 type APIController struct {
-	mvc.C
+	Ctx iris.Context
 	APIDao   *dao.APIDao
 	RuleDao  *dao.RuleDao
 	APIAlert *alert.Alert

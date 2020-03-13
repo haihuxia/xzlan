@@ -1,9 +1,9 @@
 package alert
 
 import (
+	"fmt"
 	"testing"
 	"time"
-	"fmt"
 )
 
 func TestStart(t *testing.T) {

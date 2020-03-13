@@ -1,12 +1,12 @@
 package mail
 
 import (
-	"net/smtp"
-	"strings"
-	"strconv"
 	"bytes"
 	"html/template"
 	"log"
+	"net/smtp"
+	"strconv"
+	"strings"
 )
 
 // Mail 邮箱

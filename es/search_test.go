@@ -1,16 +1,16 @@
 package es
 
 import (
-	"testing"
-	"gopkg.in/olivere/elastic.v5"
 	"context"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"gopkg.in/olivere/elastic.v5"
+	"testing"
 	"xzlan/alert"
 )
 
 func TestNewEs(t *testing.T) {
-	client, err := elastic.NewClient(elastic.SetURL("http://10.0.21.44:9200"))
+	client, err := elastic.NewClient(elastic.SetURL("http://localhost:9200"))
 	if err != nil {
 		fmt.Printf("error %s \n", err)
 	}

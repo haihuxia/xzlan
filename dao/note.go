@@ -1,8 +1,8 @@
 package dao
 
 import (
-	"time"
 	"encoding/json"
+	"time"
 )
 
 // NoteTable 告警记录

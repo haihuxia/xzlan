@@ -1,20 +1,21 @@
 package main
 
 import (
-	"github.com/kataras/iris"
-	"time"
-	"os"
-	"github.com/kataras/iris/middleware/recover"
-	"github.com/kataras/iris/middleware/logger"
-	"xzlan/dao"
-	"xzlan/controller"
-	"xzlan/alert"
-	"xzlan/mail"
 	"fmt"
-	"strings"
-	"path/filepath"
+	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/middleware/logger"
+	"github.com/kataras/iris/v12/middleware/recover"
+	"github.com/kataras/iris/v12/mvc"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+	"xzlan/alert"
+	"xzlan/controller"
+	"xzlan/dao"
+	"xzlan/mail"
 )
 
 func main() {
@@ -46,7 +47,12 @@ func main() {
 
 	app.Logger().AddOutput(newLogFile(custConf.LogPath))
 
-	app.StaticEmbedded("/static", "./static", Asset, AssetNames)
+	app.HandleDir("/static", "./static", iris.DirOptions{
+		Asset:      Asset,
+		AssetInfo:  AssetInfo,
+		AssetNames: AssetNames,
+		ShowList:   true,
+	})
 	app.RegisterView(iris.HTML("./views", ".html").Layout("layout/layout.html").
 		Delims("<<", ">>").Binary(Asset, AssetNames))
 
@@ -60,10 +66,10 @@ func main() {
 	noteDao := dao.NewNoteDao(daoDb)
 	globalmailDao := dao.NewGlobalMailDao(daoDb)
 	apiAlert := alert.NewAlert(apiDao, ruleDao, noteDao, globalmailDao, alertMail, custConf.EsURL, custConf.EsIndex)
-	app.Controller("/apis", new(controller.APIController), apiDao, ruleDao, apiAlert)
-	app.Controller("/rule", new(controller.RuleController), ruleDao, apiDao)
-	app.Controller("/notes", new(controller.NoteController), noteDao)
-	app.Controller("/globalmails", new(controller.GlobalMailController), globalmailDao)
+	mvc.New(app.Party("/apis")).Handle(new(controller.APIController)).Register(apiDao, ruleDao, apiAlert)
+	mvc.New(app.Party("/rule")).Handle(new(controller.RuleController)).Register(ruleDao, apiDao)
+	mvc.New(app.Party("/notes")).Handle(new(controller.NoteController)).Register(noteDao)
+	mvc.New(app.Party("/globalmails")).Handle(new(controller.GlobalMailController)).Register(globalmailDao)
 
 	app.Handle("GET", "/", func(ctx iris.Context) {
 		ctx.View("index.html")
@@ -78,7 +84,7 @@ func main() {
 		ctx.View("globalmail/globalmails.html")
 	})
 
-	if err := app.Run(iris.Addr(":" + custConf.ServerPort), iris.WithoutBanner, iris.WithoutVersionChecker); err != nil {
+	if err := app.Run(iris.Addr(":" + custConf.ServerPort), iris.WithoutBanner); err != nil {
 		if err != iris.ErrServerClosed {
 			app.Logger().Warn("Shutdown with error: " + err.Error())
 		}

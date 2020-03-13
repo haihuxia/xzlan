@@ -1,5 +1,6 @@
 # go
 bindata.go
+go.sum
 
 # fixed file
 .log

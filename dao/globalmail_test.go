@@ -1,8 +1,8 @@
 package dao
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestGlobalMailDao_GetAll(t *testing.T) {

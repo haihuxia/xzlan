@@ -1,8 +1,8 @@
 package dao
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestAPIDao_Add(t *testing.T) {

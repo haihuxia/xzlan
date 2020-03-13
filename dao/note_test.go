@@ -1,8 +1,8 @@
 package dao
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestNoteDao_Add(t *testing.T) {

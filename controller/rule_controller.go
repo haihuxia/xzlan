@@ -1,15 +1,15 @@
 package controller
 
 import (
-	"xzlan/dao"
-	"github.com/kataras/iris/mvc"
-	"github.com/kataras/iris"
+	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/mvc"
 	"log"
+	"xzlan/dao"
 )
 
 // RuleController 规则
 type RuleController struct {
-	mvc.C
+	Ctx iris.Context
 	RuleDao *dao.RuleDao
 	APIDao  *dao.APIDao
 }
